@@ -1,0 +1,15 @@
+PUBLICAÇÃO — Linkefy
+
+Suba TODO o conteúdo desta pasta na RAIZ do repositório do GitHub,
+substituindo os arquivos existentes:
+
+  index.html          → página completa (portfólio incluso em #projetos)
+  robots.txt          → libera indexação e aponta o sitemap
+  sitemap.xml         → mapa do site para o Google
+  assets/og-linkefy.png  → imagem de preview ao compartilhar (WhatsApp/Instagram/Facebook)
+  assets/logo-white.png  → logo usado pelo Google (dados estruturados)
+
+A pasta assets/ deve ficar na raiz, ao lado do index.html.
+As demais imagens já estão embutidas dentro do index.html.
+
+Após o commit, aguarde 1–2 minutos para o GitHub Pages republicar.

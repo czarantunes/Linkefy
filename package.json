@@ -1,8 +1,8 @@
 {
-  "name": "linkefy-audit-v2",
-  "version": "2.0.1",
+  "name": "linkefy-audit",
+  "version": "3.0.1",
   "private": true,
-  "description": "Linkefy Audit — Scanner + MDN Observatory + Google PageSpeed (bug de runtime corrigido)",
+  "description": "Linkefy Audit v3 - correções de consistência, nomenclatura e transparência técnica",
   "engines": {
     "node": ">=18"
   },

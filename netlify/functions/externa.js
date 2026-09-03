@@ -1,5 +1,5 @@
 /**
- * Linkefy Audit v2 — Extensão com integrações externas reais
+ * Linkefy Audit v2 - Extensão com integrações externas reais
  * 
  * Estende o motor Linkefy original com:
  * - MDN HTTP Observatory API (segurança HTTP real)
@@ -197,7 +197,7 @@ async function analisarPageSpeed(urlStr, strategy = 'mobile') {
 }
 
 /**
- * Normalizar evidências — unifica o que veio de cada fonte
+ * Normalizar evidências - unifica o que veio de cada fonte
  */
 function normalizarEvidencias(scanner, observatory, pagespeed) {
   return {

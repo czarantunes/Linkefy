@@ -16,11 +16,11 @@
   Cache-Control: public, max-age=0, must-revalidate
 
 /diagnostico
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-sf/cE3Fj64gIjt5JDxg/eMjaD9dvQrzuXoBMVjwF1ho='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-mr5K2a/GOPxWEzrhdNc9vvilHSJO5L2ZCPAdQNyqcZQ='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests
   Cache-Control: public, max-age=0, must-revalidate
 
 /diagnostico.html
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-sf/cE3Fj64gIjt5JDxg/eMjaD9dvQrzuXoBMVjwF1ho='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-mr5K2a/GOPxWEzrhdNc9vvilHSJO5L2ZCPAdQNyqcZQ='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests
   Cache-Control: public, max-age=0, must-revalidate
 
 /assets/*

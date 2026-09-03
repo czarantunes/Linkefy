@@ -7,7 +7,7 @@
 <meta name="description" content="Analise segurança, velocidade, SEO, experiência, comunicação e potencial de conversão do seu site em um único diagnóstico.">
 <meta name="robots" content="index, follow">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-sf/cE3Fj64gIjt5JDxg/eMjaD9dvQrzuXoBMVjwF1ho='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-mr5K2a/GOPxWEzrhdNc9vvilHSJO5L2ZCPAdQNyqcZQ='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests">
 <link rel="canonical" href="https://www.linkefydigital.com.br/diagnostico">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Linkefy">
@@ -56,10 +56,11 @@
     .lk-bar,.lk-ring{transition:none}
   }
   #print-marca{display:none}
+  @media(max-width:640px){.lk-exec-grid{grid-template-columns:1fr !important}}
   @media print{
-    header,footer,#etapa-intro,#etapa-analise,#relatorio-acoes,#relatorio-cta,.lk-noprint{display:none !important}
+    header,footer,#etapa-intro,#etapa-analise,#relatorio-acoes,#relatorio-cta,.lk-noprint,#relatorio-executivo{display:none !important}
     html,body{background:#0D0D0D !important;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    #relatorio-validacoes,#etapa-relatorio{padding:0 !important}
+    #relatorio-validacoes,#relatorio-executivo,#etapa-relatorio{padding:0 !important}
     #print-marca{display:flex !important}
   }
 </style>
@@ -68,7 +69,7 @@
 
 <header style="position:sticky;top:0;z-index:50;background:rgba(13,13,13,.82);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07)">
 <div style="max-width:1200px;margin:0 auto;padding:14px 22px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px">
-<a href="index.html" style="display:flex;align-items:center"><img src="assets/logo-white.png" alt="Linkefy — agência de soluções digitais em Santa Catarina" width="140" height="34" decoding="async" style="height:clamp(26px,3vw,34px);width:auto;display:block"></a>
+<a href="index.html" style="display:flex;align-items:center"><img src="assets/logo-white.png" alt="Linkefy - agência de soluções digitais em Santa Catarina" width="140" height="34" decoding="async" style="height:clamp(26px,3vw,34px);width:auto;display:block"></a>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px">
 <a href="index.html" style="color:#d6d6d6;font-weight:500;font-size:15px;display:inline-flex;align-items:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d6d6d6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Início</a>
 <a href="https://www.instagram.com/linkefy_/" target="_blank" rel="noopener" aria-label="Instagram" class="lk-ig-btn" style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:10px;border:1px solid rgba(255,255,255,.14);color:#fff"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1"/></svg></a>
@@ -77,7 +78,7 @@
 
 <main id="conteudo">
 
-<!-- ETAPA 1 — APRESENTAÇÃO + CAPTURA -->
+<!-- ETAPA 1 - APRESENTAÇÃO + CAPTURA -->
 <div id="etapa-intro">
 
 <section style="position:relative;overflow:hidden">
@@ -119,13 +120,13 @@
 
 <div id="painel-google" style="display:none">
 <h2 style="font-family:Sora;font-weight:800;font-size:clamp(22px,3vw,32px);letter-spacing:-.02em;line-height:1.12">Vamos avaliar seu perfil no Google</h2>
-<p style="color:#c4c4c4;font-size:15px;line-height:1.55;margin-top:10px">Cole o link do seu perfil no Google Maps. O que não conseguirmos verificar automaticamente, você pode completar abaixo — e o relatório mostra a origem de cada informação.</p>
+<p style="color:#c4c4c4;font-size:15px;line-height:1.55;margin-top:10px">Cole o link do seu perfil no Google Maps. O que não conseguirmos verificar automaticamente, você pode completar abaixo - e o relatório mostra a origem de cada informação.</p>
 <form id="form-google" novalidate style="margin-top:22px">
 <label for="campo-google" style="display:block;color:#9d9d9d;font-size:13px;font-weight:600;margin-bottom:7px">Link do Google Maps ou nome da empresa e cidade</label>
 <input id="campo-google" name="perfil" type="text" placeholder="https://maps.app.goo.gl/... ou Linkefy, Florianópolis" aria-describedby="erro-url" class="lk-input" style="width:100%;background:rgba(13,13,13,.72);border:1px solid rgba(255,255,255,.16);border-radius:13px;color:#fff;font-family:Manrope,sans-serif;font-size:16px;padding:16px 18px;min-height:56px">
 
 <div style="background:rgba(13,13,13,.5);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;margin-top:18px">
-<p style="display:flex;align-items:flex-start;gap:9px;color:#c4c4c4;font-size:13.5px;line-height:1.55"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F7941D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Sem uma API paga do Google não é possível ler os dados do perfil automaticamente. Preencha o que souber — tudo aqui será marcado como <strong style="color:#fff;font-weight:700">informado por você</strong>, nunca como verificado.</span></p>
+<p style="display:flex;align-items:flex-start;gap:9px;color:#c4c4c4;font-size:13.5px;line-height:1.55"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F7941D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg><span>Sem uma API paga do Google não é possível ler os dados do perfil automaticamente. Preencha o que souber - tudo aqui será marcado como <strong style="color:#fff;font-weight:700">informado por você</strong>, nunca como verificado.</span></p>
 
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:18px">
 <div><label for="g-nota" style="display:block;color:#9d9d9d;font-size:12.5px;font-weight:600;margin-bottom:6px">Nota no Google</label><input id="g-nota" type="number" min="1" max="5" step="0.1" placeholder="4.8" class="lk-input" style="width:100%;background:rgba(13,13,13,.72);border:1px solid rgba(255,255,255,.16);border-radius:11px;color:#fff;font-family:Manrope,sans-serif;font-size:15px;padding:13px 14px;min-height:48px"></div>
@@ -147,7 +148,7 @@
 
 </div>
 
-<!-- ETAPA 2 — ANÁLISE EM ANDAMENTO -->
+<!-- ETAPA 2 - ANÁLISE EM ANDAMENTO -->
 <div id="etapa-analise" style="display:none">
 <section style="position:relative;overflow:hidden;min-height:72vh;display:flex;align-items:center">
 <div style="position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:min(900px,150%);height:520px;background:radial-gradient(circle at 50% 30%,rgba(232,114,12,.22),transparent 68%);pointer-events:none"></div>
@@ -179,7 +180,7 @@
 </section>
 </div>
 
-<!-- ETAPA 3 — RELATÓRIO -->
+<!-- ETAPA 3 - RELATÓRIO -->
 <div id="etapa-relatorio" style="display:none">
 
 <div id="print-marca" style="align-items:center;justify-content:space-between;gap:18px;padding:0 22px 18px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:22px">
@@ -232,7 +233,7 @@
 
 <section style="max-width:1200px;margin:0 auto;padding:clamp(34px,4.5vw,54px) 22px 0">
 <h2 style="font-family:Sora;font-weight:800;font-size:clamp(22px,3vw,32px);letter-spacing:-.02em">Principais oportunidades encontradas</h2>
-<p style="color:#9d9d9d;font-size:15px;line-height:1.55;margin-top:10px;max-width:620px">Ordenadas por prioridade — comece de cima para baixo.</p>
+<p style="color:#9d9d9d;font-size:15px;line-height:1.55;margin-top:10px;max-width:620px">Ordenadas por prioridade - comece de cima para baixo.</p>
 <div id="rel-gaps" style="display:flex;flex-direction:column;gap:14px;margin-top:24px"></div>
 </section>
 
@@ -248,6 +249,22 @@
 
 <section style="max-width:1200px;margin:0 auto;padding:clamp(28px,4vw,44px) 22px 0">
 <div id="rel-notas" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px 24px"></div>
+</section>
+
+<section id="relatorio-executivo" style="max-width:1200px;margin:0 auto;padding:0 22px clamp(28px,4vw,44px)">
+<h2 style="color:#e6e6e6;font-size:18px;font-weight:600;margin-bottom:16px">Diagnóstico executivo</h2>
+<p id="exec-classificacao" style="color:#F7941D;font-weight:700;font-size:15px;margin-bottom:14px"></p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="lk-exec-grid">
+<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px">
+  <p style="color:#b9b9b9;font-size:13px;margin-bottom:8px">Principais forças</p>
+  <ul id="exec-forcas" style="color:#c4c4c4;font-size:13.5px;line-height:1.7;padding-left:18px;margin:0"></ul>
+</div>
+<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px">
+  <p style="color:#b9b9b9;font-size:13px;margin-bottom:8px">Principais problemas</p>
+  <ul id="exec-problemas" style="color:#c4c4c4;font-size:13.5px;line-height:1.7;padding-left:18px;margin:0"></ul>
+</div>
+</div>
+<p id="exec-aviso" style="color:#888;font-size:12px;margin-top:12px;font-style:italic"></p>
 </section>
 
 <section id="relatorio-validacoes" style="max-width:1200px;margin:0 auto;padding:clamp(28px,4vw,44px) 22px 0">
@@ -298,7 +315,7 @@
 
 <footer style="border-top:1px solid rgba(255,255,255,.08);background:#0a0a0a">
 <div style="max-width:1200px;margin:0 auto;padding:clamp(40px,5vw,64px) 22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:34px">
-<div><img src="assets/logo-white.png" alt="Linkefy — soluções digitais" width="130" height="30" loading="lazy" decoding="async" style="height:32px;width:auto;display:block"><p style="color:#8f8f8f;font-size:14px;line-height:1.55;margin-top:14px;max-width:280px">Sites institucionais e landing pages que geram credibilidade e resultados.</p></div>
+<div><img src="assets/logo-white.png" alt="Linkefy - soluções digitais" width="130" height="30" loading="lazy" decoding="async" style="height:32px;width:auto;display:block"><p style="color:#8f8f8f;font-size:14px;line-height:1.55;margin-top:14px;max-width:280px">Sites institucionais e landing pages que geram credibilidade e resultados.</p></div>
 <div><h3 style="font-family:Sora;font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:#E8720C">Contato</h3>
 <a href="https://wa.me/5548988000996?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Linkefy%20e%20quero%20solicitar%20um%20or%C3%A7amento." target="_blank" rel="noopener" style="display:block;color:#dcdcdc;font-size:15px;margin-top:14px">WhatsApp: (48) 98800-0996</a>
 <a href="mailto:contato@linkefy.com.br" style="display:block;color:#dcdcdc;font-size:15px;margin-top:10px">contato@linkefy.com.br</a>
@@ -310,10 +327,10 @@
 
 <script>
 /* ------------------------------------------------------------------
-   Diagnóstico Digital Linkefy — v1.1
+   Diagnóstico Digital Linkefy - v1.1
    Modo SITE: análise real via Netlify Function /api/audit-site.
    Modo GOOGLE: dados informados pelo usuário, marcados como tais.
-   Nada é inventado — itens sem dado ficam como "não verificado"
+   Nada é inventado - itens sem dado ficam como "não verificado"
    e categorias indisponíveis saem do cálculo da nota.
 ------------------------------------------------------------------ */
 
@@ -335,7 +352,7 @@ var CATEGORIAS = [
   { key:'performance', nome:'Velocidade e Performance',    curto:'velocidade' },
   { key:'seo',         nome:'SEO',                        curto:'SEO' },
   { key:'mobile',      nome:'Experiência Mobile',         curto:'mobile' },
-  { key:'design',      nome:'Design e Modernidade',       curto:'design' },
+  { key:'design',      nome:'Design e Experiência',       curto:'design' },
   { key:'audienceFit', nome:'Comunicação e Público-Alvo', curto:'comunicação' },
   { key:'conversion',  nome:'Potencial de Conversão',     curto:'conversão' },
   { key:'credibility', nome:'Credibilidade',              curto:'credibilidade' }
@@ -345,12 +362,11 @@ var O_QUE_ANALISAMOS = [
   { key:'security',    nome:'Segurança',            desc:'HTTPS, certificado e configurações de proteção.' },
   { key:'performance', nome:'Velocidade',            desc:'Tempo de carregamento e peso dos recursos.' },
   { key:'seo',         nome:'SEO',                   desc:'Estrutura que o Google usa para entender o site.' },
-  { key:'mobile',      nome:'Mobile',                desc:'Como o site se comporta no celular.' },
-  { key:'design',      nome:'Design e modernidade',  desc:'Organização, hierarquia e percepção atual.' },
+  { key:'mobile',      nome:'Experiência Mobile',      desc:'Como o site se comporta no celular.' },
+  { key:'design',      nome:'Design e Experiência',  desc:'Sinais estruturais e técnicos detectáveis automaticamente - sem análise visual por screenshot.' },
   { key:'audienceFit', nome:'Comunicação',           desc:'Se o site fala a língua do seu cliente.' },
   { key:'conversion',  nome:'Conversão',             desc:'O caminho entre visitar e entrar em contato.' },
-  { key:'credibility', nome:'Credibilidade',         desc:'Sinais de confiança para quem chega.' },
-  { key:'mobile',      nome:'Experiência do usuário',desc:'Navegação, clareza e facilidade de uso.' }
+  { key:'credibility', nome:'Credibilidade',         desc:'Sinais de confiança para quem chega.' }
 ];
 
 var ETAPAS = [
@@ -582,7 +598,7 @@ function iniciarAnalise(promessa, rotulos) {
   estado.timers.push(timerInsight);
 
   /* o anel avança até 90% enquanto a requisição real está em curso e
-     completa quando a resposta chega — nunca antes */
+     completa quando a resposta chega - nunca antes */
   var i = 0;
   var teto = etapas.length - 1;
   var avanco = setInterval(function() {
@@ -625,7 +641,7 @@ function iniciarAnalise(promessa, rotulos) {
 /* ---------- chamada ao motor real ----------
    Tenta o caminho canônico da função ANTES da rota /api/*, para não
    depender do netlify.toml. Se a resposta não for JSON, é a página de
-   404 do host: a função não está publicada — e a mensagem diz isso. */
+   404 do host: a função não está publicada - e a mensagem diz isso. */
 var ROTAS_MOTOR = ['/.netlify/functions/audit-site', '/api/audit-site'];
 
 function analisarSite(alvo) {
@@ -707,7 +723,7 @@ function analisarGoogle(entrada) {
       ? { status:'unknown', peso:5, rotulo:'Nota no Google', detalhe:'Não informada.' }
       : { status: nota >= 4.5 ? 'pass' : (nota >= 4 ? 'warn' : 'fail'), peso:5,
           rotulo:'Nota no Google', detalhe: nota.toFixed(1).replace('.',',') + ' de 5,0.', origem: origemUsuario },
-    fl('g-responde', 2, 'Responde às avaliações', 'Sim.', 'Não — respostas aumentam a confiança de quem lê.')
+    fl('g-responde', 2, 'Responde às avaliações', 'Sim.', 'Não - respostas aumentam a confiança de quem lê.')
   ]);
 
   cats.reviews = cat([
@@ -720,7 +736,7 @@ function analisarGoogle(entrada) {
   cats.completeness = cat([
     txt(entrada.categoria, 3, 'Categoria principal definida', entrada.categoria, 'Não informada.'),
     fl('g-tel', 3, 'Telefone no perfil', 'Presente.', 'Ausente.'),
-    fl('g-site', 3, 'Site vinculado', 'Presente.', 'Ausente — perde tráfego e credibilidade.'),
+    fl('g-site', 3, 'Site vinculado', 'Presente.', 'Ausente - perde tráfego e credibilidade.'),
     fl('g-horarios', 2, 'Horários completos', 'Preenchidos.', 'Incompletos.'),
     fl('g-descricao', 2, 'Descrição preenchida', 'Preenchida.', 'Vazia.'),
     fl('g-servicos', 2, 'Serviços ou produtos listados', 'Listados.', 'Não listados.', true)
@@ -737,7 +753,7 @@ function analisarGoogle(entrada) {
   ]);
 
   cats.gconversion = cat([
-    fl('g-tel', 3, 'Contato direto pelo perfil', 'Telefone disponível.', 'Sem telefone — o cliente não consegue ligar.'),
+    fl('g-tel', 3, 'Contato direto pelo perfil', 'Telefone disponível.', 'Sem telefone - o cliente não consegue ligar.'),
     fl('g-site', 2, 'Caminho para o site', 'Site vinculado.', 'Sem site vinculado.', true),
     fl('g-horarios', 2, 'Horário para decidir a visita', 'Horários informados.', 'Horários incompletos.', true)
   ]);
@@ -776,7 +792,7 @@ function analisarGoogle(entrada) {
     var c = cats[meta.key];
     if (!c || !c.checks) return;
     c.checks.forEach(function(it) {
-      if (it.status === 'pass') strengths.push(it.rotulo + (it.detalhe ? ' — ' + it.detalhe : ''));
+      if (it.status === 'pass') strengths.push(it.rotulo + (it.detalhe ? ' - ' + it.detalhe : ''));
       else if (it.status === 'fail' || it.status === 'warn') {
         var critico = CRITICOS_G.indexOf(it.rotulo) !== -1;
         issues.push({
@@ -814,7 +830,7 @@ function analisarGoogle(entrada) {
     strengths: strengths.slice(0, 12),
     issues: issues,
     notes: [
-      'Todos os itens deste diagnóstico foram informados por você — o Google não permite leitura automática do perfil sem API paga.',
+      'Todos os itens deste diagnóstico foram informados por você - o Google não permite leitura automática do perfil sem API paga.',
       'Nenhuma posição em buscas é estimada.'
     ]
   };
@@ -829,7 +845,17 @@ function montarRelatorio() {
   estado.notaGeral = nota;
 
   // Validações externas só existem no modo "site" (Observatory/PageSpeed exigem uma URL)
-  var secaoExterna = document.getElementById('relatorio-validacoes');
+  if (d.executive) {
+    var ex = d.executive;
+    document.getElementById('exec-classificacao').textContent = 'Classificação: ' + ex.classificacao;
+    var ulF = document.getElementById('exec-forcas');
+    ulF.innerHTML = ex.principaisForcas.length ? ex.principaisForcas.map(function(f){ return '<li>' + f + '</li>'; }).join('') : '<li>Nenhum ponto forte destacado nesta análise.</li>';
+    var ulP = document.getElementById('exec-problemas');
+    ulP.innerHTML = ex.principaisProblemas.length ? ex.principaisProblemas.map(function(p){ return '<li><strong>[' + p.prioridade + ']</strong> ' + p.titulo + '</li>'; }).join('') : '<li>Nenhum problema crítico identificado.</li>';
+    document.getElementById('exec-aviso').textContent = ex.aviso || '';
+  }
+
+    var secaoExterna = document.getElementById('relatorio-validacoes');
   if (d.kind === 'google') {
     secaoExterna.style.display = 'none';
   } else {
@@ -838,9 +864,9 @@ function montarRelatorio() {
   if (d.external) {
     var obs = d.external.observatory;
     if (obs && obs.disponivel) {
-      document.getElementById('obs-conteudo').innerHTML = '<strong>' + (obs.grade || 'N/A') + '</strong> · Score: ' + (obs.score || '—') + ' · Testes: ' + obs.testes.aprovados + ' OK, ' + obs.testes.reprovados + ' reprovados';
+      document.getElementById('obs-conteudo').innerHTML = '<strong>' + (obs.grade || 'N/A') + '</strong> · Score: ' + (obs.score || '-') + ' · Testes: ' + obs.testes.aprovados + ' OK, ' + obs.testes.reprovados + ' reprovados';
     } else if (obs) {
-      document.getElementById('obs-conteudo').textContent = '⚠ Fonte externa indisponível nesta análise' + (obs.erro ? ' (' + obs.erro + ')' : '.');
+      document.getElementById('obs-conteudo').textContent = '⚠ MDN HTTP Observatory temporariamente indisponível' + (obs.erro ? ' (' + obs.erro + ')' : '.') + ' Isso não penaliza a nota de segurança do site.';
     }
     var psi = d.external.pagespeed;
     if (psi && psi.disponivel) {
@@ -854,13 +880,13 @@ function montarRelatorio() {
       ];
       document.getElementById('psi-conteudo').innerHTML = '<div>' + scores.join('</div><div>') + '</div>';
     } else if (psi) {
-      document.getElementById('psi-conteudo').textContent = '⚠ Fonte externa indisponível nesta análise' + (psi.erro ? ' (' + psi.erro + ')' : '.');
+      document.getElementById('psi-conteudo').textContent = '⚠ Google PageSpeed Insights temporariamente indisponível' + (psi.erro ? ' (' + psi.erro + ')' : '.') + ' Isso não penaliza a nota de performance do site.';
     }
     var fontes = (d.external.fontes || []).map(function(f){ return '✓ ' + f; }).join('<br>');
     document.getElementById('fontes-lista').innerHTML = fontes || '(nenhuma fonte disponível nesta análise)';
   } else {
-    document.getElementById('obs-conteudo').textContent = '⚠ Fonte externa indisponível nesta análise.';
-    document.getElementById('psi-conteudo').textContent = '⚠ Fonte externa indisponível nesta análise.';
+    document.getElementById('obs-conteudo').textContent = '⚠ MDN HTTP Observatory temporariamente indisponível.';
+    document.getElementById('psi-conteudo').textContent = '⚠ Google PageSpeed Insights temporariamente indisponível.';
     document.getElementById('fontes-lista').innerHTML = '✓ Scanner Linkefy';
   }
 
@@ -881,9 +907,9 @@ function montarRelatorio() {
 
   var selo = document.getElementById('rel-selo');
   if (selo) {
-    if (d.demo) { selo.textContent = 'Demonstração — dados de exemplo'; selo.style.display = ''; }
+    if (d.demo) { selo.textContent = 'Demonstração - dados de exemplo'; selo.style.display = ''; }
     else if (d.kind === 'google') { selo.textContent = 'Dados informados por você'; selo.style.display = ''; }
-    else { selo.textContent = 'Análise real — ' + (d.engine || 'linkefy-audit'); selo.style.display = ''; }
+    else { selo.textContent = 'Análise real - ' + (d.engine || 'linkefy-audit'); selo.style.display = ''; }
   }
 
   var altas = d.issues.filter(function(x){ return x.severity==='high'; }).length;
@@ -930,7 +956,7 @@ function montarRelatorio() {
       checks += '<li style="display:flex;gap:9px;font-size:13.5px;line-height:1.45">'
         + '<span style="color:'+st.cor+';flex:0 0 auto;font-weight:700">'+st.marca+'</span>'
         + '<span style="color:#d6d6d6"><strong style="font-weight:600;color:#e6e6e6">'+esc(it.rotulo)+'</strong>'
-        + (it.detalhe ? ' <span style="color:#9d9d9d">— '+esc(it.detalhe)+'</span>' : '') + origem + '</span></li>';
+        + (it.detalhe ? ' <span style="color:#9d9d9d">- '+esc(it.detalhe)+'</span>' : '') + origem + '</span></li>';
     }
     hcat += '<div style="display:flex;flex-direction:column;background:#141414;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:24px">'
       + '<div style="display:flex;align-items:center;gap:13px">'

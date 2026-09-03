@@ -1,11 +1,11 @@
 /**
- * Linkefy Audit — motor de análise real (Netlify Function)
+ * Linkefy Audit - motor de análise real (Netlify Function)
  * POST /api/audit-site  { "url": "https://exemplo.com.br" }
  *
  * Zero dependências externas. Nenhuma API paga. Nada é inventado:
  * cada item devolve pass | fail | warn | unknown, e "unknown" nunca pontua.
  *
- * PESOS DA NOTA GERAL (documentado — item 13 do briefing):
+ * PESOS DA NOTA GERAL (documentado - item 13 do briefing):
  *   performance 20 · seo 20 · security 15 · audienceFit 15
  *   conversion 15 · mobile 10 · credibility 5
  * Categoria com available:false sai do numerador E do denominador.
@@ -21,8 +21,8 @@ const MAX_BYTES = 2 * 1024 * 1024;
 const UA = 'LinkefyAudit/1.0 (+https://www.linkefydigital.com.br/diagnostico)';
 
 const PESOS = {
-  performance: 20, seo: 20, security: 15, audienceFit: 15,
-  conversion: 15, mobile: 10, credibility: 5
+  performance: 18, seo: 18, security: 13, audienceFit: 13,
+  conversion: 13, mobile: 9, design: 12, credibility: 4
 };
 
 /* ------------------------------------------------------------------ *
@@ -155,8 +155,15 @@ async function buscar(urlStr, opcoes) {
 function novaCategoria() { return { itens: [], pontos: 0, possivel: 0 }; }
 
 /** status: 'pass' | 'fail' | 'warn' | 'unknown'. 'unknown' não entra no denominador. */
-function checar(cat, status, peso, rotulo, detalhe) {
-  cat.itens.push({ status, rotulo, detalhe: detalhe || '' });
+function checar(cat, status, peso, rotulo, detalhe, meta) {
+  const item = { status, rotulo, detalhe: detalhe || '' };
+  if (meta) {
+    if (meta.source) item.source = meta.source;
+    if (meta.confidence) item.confidence = meta.confidence;
+    if (meta.grupo) item.grupo = meta.grupo;
+    if (meta.id) item.id = meta.id;
+  }
+  cat.itens.push(item);
   if (status === 'unknown') return;
   cat.possivel += peso;
   if (status === 'pass') cat.pontos += peso;
@@ -192,6 +199,26 @@ function semTags(s) {
     .replace(/&nbsp;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/** Remove blocos com display:none / visibility:hidden / opacity:0 / [hidden] / aria-hidden
+ *  antes de qualquer leitura de texto - impede manipular a nota escondendo conteúdo. */
+function removerOcultos(html) {
+  let h = String(html || '');
+  const padroesOcultos = [
+    /display\s*:\s*none/i, /visibility\s*:\s*hidden/i, /opacity\s*:\s*0(?:[^.\d]|$)/i
+  ];
+  // remove qualquer tag com style inline contendo um padrão de ocultação
+  h = h.replace(/<([a-z0-9]+)\b([^>]*\bstyle\s*=\s*["'][^"']*["'][^>]*)>([\s\S]*?)<\/\1>/gi, function (m, tag, attrs) {
+    const styleM = attrs.match(/style\s*=\s*["']([^"']*)["']/i);
+    const style = styleM ? styleM[1] : '';
+    if (padroesOcultos.some(function (re) { return re.test(style); })) return '';
+    return m;
+  });
+  // remove atributo hidden e aria-hidden="true"
+  h = h.replace(/<([a-z0-9]+)\b([^>]*\bhidden\b[^>]*)>([\s\S]*?)<\/\1>/gi, '');
+  h = h.replace(/<([a-z0-9]+)\b([^>]*\baria-hidden\s*=\s*["']true["'][^>]*)>([\s\S]*?)<\/\1>/gi, '');
+  return h;
 }
 function primeiroAtributo(html, tagRe, attr) {
   const m = html.match(tagRe);
@@ -236,7 +263,8 @@ function extrair(html) {
     } catch (e) { /* JSON-LD inválido não conta como presente */ }
   }
 
-  const texto = semTags(html);
+  const htmlVisivel = removerOcultos(html);
+  const texto = semTags(htmlVisivel);        // anti-manipulação: texto oculto não conta para comunicação/credibilidade
   const corpoBaixo = texto.toLowerCase();
   const htmlBaixo = html.toLowerCase();
 
@@ -281,7 +309,7 @@ function extrair(html) {
     },
     mixedContent: (html.match(/(?:src|href)\s*=\s*["']http:\/\/[^"']+/gi) || [])
       .filter(s => !/http:\/\/(www\.)?w3\.org|schema\.org|purl\.org|ogp\.me/i.test(s)).length,
-    texto, corpoBaixo, htmlBaixo,
+    texto, corpoBaixo, htmlBaixo, htmlVisivel,
     tamanhoTexto: texto.length
   };
 }
@@ -373,7 +401,7 @@ function analisarSeo(ctx) {
   checar(c, d.h2s.length >= 2 ? 'pass' : 'warn', 1, 'Subtítulos (H2)', d.h2s.length + ' H2 encontrado(s).');
 
   const og = d.ogTitle && d.ogDescription && d.ogImage;
-  checar(c, og ? 'pass' : 'warn', 2, 'Open Graph', og ? 'Título, descrição e imagem presentes.' : 'Incompleto — afeta o preview em redes sociais.');
+  checar(c, og ? 'pass' : 'warn', 2, 'Open Graph', og ? 'Título, descrição e imagem presentes.' : 'Incompleto - afeta o preview em redes sociais.');
 
   checar(c, d.jsonldTipos.length ? 'pass' : 'fail', 3, 'Dados estruturados (Schema)',
     d.jsonldTipos.length ? 'Tipos: ' + d.jsonldTipos.slice(0, 4).join(', ') + '.' : 'Nenhum JSON-LD válido encontrado.');
@@ -430,7 +458,7 @@ function analisarPerformance(ctx) {
   }
 
   checar(c, d.scriptsExternos <= 8 ? 'pass' : 'warn', 1, 'Recursos JavaScript externos', d.scriptsExternos + ' arquivo(s).');
-  checar(c, 'unknown', 0, 'Core Web Vitals (LCP, CLS, INP)', 'Não medidos nesta análise — exigem execução da página em navegador real.');
+  checar(c, 'unknown', 0, 'Core Web Vitals (LCP, CLS, INP)', 'Não medidos nesta análise - exigem execução da página em navegador real.');
 
   return fechar(c, (s) => 'Sinais de performance ' + faixaTexto(s).toLowerCase() + ', com base no HTML entregue. Core Web Vitals não foram medidos.');
 }
@@ -440,7 +468,7 @@ function analisarMobile(ctx) {
   const d = ctx.html;
 
   const vp = d.viewport || '';
-  checar(c, vp ? 'pass' : 'fail', 4, 'Meta viewport', vp ? vp.slice(0, 60) : 'Ausente — o site não se adapta a telas pequenas.');
+  checar(c, vp ? 'pass' : 'fail', 4, 'Meta viewport', vp ? vp.slice(0, 60) : 'Ausente - o site não se adapta a telas pequenas.');
   if (vp) {
     const trava = /user-scalable\s*=\s*no/i.test(vp) || /maximum-scale\s*=\s*1(\.0)?\b/i.test(vp);
     checar(c, trava ? 'fail' : 'pass', 1, 'Zoom liberado', trava ? 'O viewport bloqueia o zoom do usuário.' : 'O usuário pode ampliar a página.');
@@ -450,13 +478,13 @@ function analisarMobile(ctx) {
 
   const temMediaQuery = /@media[^{]*\(\s*(max|min)-width/i.test(ctx.corpoHtml);
   checar(c, temMediaQuery ? 'pass' : 'unknown', 2, 'Regras responsivas no HTML',
-    temMediaQuery ? 'Media queries encontradas.' : 'Não detectadas no HTML — podem estar em CSS externo, não avaliado.');
+    temMediaQuery ? 'Media queries encontradas.' : 'Não detectadas no HTML - podem estar em CSS externo, não avaliado.');
 
   if (d.imgs.length === 0) {
     checar(c, 'unknown', 2, 'Imagens responsivas', 'Nenhuma imagem encontrada.');
   } else {
     checar(c, d.imgsResponsivas > 0 ? 'pass' : 'warn', 2, 'Imagens responsivas',
-      d.imgsResponsivas > 0 ? d.imgsResponsivas + ' imagem(ns) com srcset/sizes.' : 'Nenhuma imagem com srcset — a mesma versão é enviada ao celular.');
+      d.imgsResponsivas > 0 ? d.imgsResponsivas + ' imagem(ns) com srcset/sizes.' : 'Nenhuma imagem com srcset - a mesma versão é enviada ao celular.');
   }
 
   const fixos = (ctx.corpoHtml.match(/width\s*:\s*\d{4,}px/gi) || []).length;
@@ -473,24 +501,33 @@ function analisarConversao(ctx) {
 
   const contatos = [d.whatsapp, d.telefone, d.email, d.temFormulario].filter(Boolean).length;
   checar(c, contatos >= 2 ? 'pass' : (contatos === 1 ? 'warn' : 'fail'), 4, 'Formas de contato',
-    contatos + ' canal(is) detectado(s)' + (d.whatsapp ? ' — inclui WhatsApp' : '') + '.');
+    contatos + ' canal(is) detectado(s)' + (d.whatsapp ? ' - inclui WhatsApp' : '') + '.');
 
   checar(c, d.whatsapp ? 'pass' : 'warn', 2, 'WhatsApp', d.whatsapp ? 'Link direto encontrado.' : 'Nenhum link de WhatsApp encontrado.');
   checar(c, d.temFormulario ? 'pass' : 'warn', 2, 'Formulário', d.temFormulario ? 'Encontrado.' : 'Nenhum formulário encontrado.');
 
-  const CTA = /(fale|falar|entre em contato|solicite|solicitar|orçamento|orcamento|agende|agendar|peça|pedir|compre|comprar|assine|assinar|cadastre|quero|contrate|contratar|saiba mais|começar|comece)/i;
-  const ctas = (d.links.length ? (ctx.corpoHtml.match(/<a\b[^>]*>[\s\S]{0,120}?<\/a>/gi) || []) : [])
-    .filter(a => CTA.test(semTags(a)));
-  const ctasBotao = (ctx.corpoHtml.match(/<button\b[^>]*>[\s\S]{0,120}?<\/button>/gi) || []).filter(b => CTA.test(semTags(b)));
-  const totalCta = ctas.length + ctasBotao.length;
+  const CTA = /(fale|falar|entre em contato|solicite|solicitar|orçamento|orcamento|agende|agendar|peça|pedir|compre|comprar|assine|assinar|cadastre|quero|contrate|contratar|saiba mais|começar|comece|ver servi(ç|c)os|enviar mensagem|pedir or(ç|c)amento|conhe(ç|c)a)/i;
+  const blocosClicaveis = ctx.corpoHtml.match(/<(a|button)\b[^>]*>[\s\S]{0,140}?<\/(a|button)>/gi) || [];
+  const ctaPorTexto = blocosClicaveis.filter(b => CTA.test(semTags(b)));
+  const ctaPorAtributo = blocosClicaveis.filter(b =>
+    /role\s*=\s*["']button["']/i.test(b) ||
+    /aria-label\s*=\s*["'][^"']*(contato|orçamento|orcamento|agend|compr|whatsapp|fale)[^"']*["']/i.test(b) ||
+    /href\s*=\s*["'](tel:|mailto:|[^"']*wa\.me)/i.test(b) ||
+    /onclick\s*=/i.test(b)
+  );
+  const totalCta = new Set(ctaPorTexto.concat(ctaPorAtributo)).size;
+  const flutuante = /position\s*:\s*fixed[^"']*(bottom|right)/i.test(ctx.corpoHtml) && (d.whatsapp || /href\s*=\s*["']tel:/i.test(ctx.corpoHtml));
   checar(c, totalCta >= 3 ? 'pass' : (totalCta >= 1 ? 'warn' : 'fail'), 4, 'Chamadas para ação',
-    totalCta + ' CTA identificado(s) por texto de ação.');
+    totalCta + ' CTA identificado(s) por texto de ação, atributo (role/aria-label/onclick) ou link direto (tel/mailto/WhatsApp).' + (flutuante ? ' Inclui botão flutuante fixo.' : ''),
+    { source: 'dom', confidence: 'high' });
 
-  // CTA na primeira metade do HTML ≈ acima da dobra
+  // CTA na primeira metade do HTML é um indício (não confirmação) de estar acima da dobra -
+  // sem renderização real, não afirmamos com certeza a posição visual do elemento na tela.
   const metade = ctx.corpoHtml.slice(0, Math.floor(ctx.corpoHtml.length / 2));
   const ctaTopo = (metade.match(/<(a|button)\b[^>]*>[\s\S]{0,120}?<\/(a|button)>/gi) || []).some(x => CTA.test(semTags(x)));
-  checar(c, ctaTopo ? 'pass' : 'warn', 2, 'CTA no início da página',
-    ctaTopo ? 'Há chamada para ação na primeira metade do documento.' : 'Nenhuma chamada para ação no início do documento.');
+  checar(c, ctaTopo ? 'pass' : 'unknown', 2, 'CTA no início do documento',
+    ctaTopo ? 'Há chamada para ação na primeira metade do HTML - indício de estar acima da dobra.' : 'Posicionamento visual do CTA não confirmado nesta versão (sem renderização real da página).',
+    { source: 'dom', confidence: 'medium' });
 
   const prova = /(depoimento|depoimentos|avalia(ç|c)(ã|a)o|avalia(ç|c)(õ|o)es|clientes? (dizem|atendidos)|cases?|portf(ó|o)lio|resultados? (real|reais)|quem confia|parceiros)/i.test(t);
   checar(c, prova ? 'pass' : 'fail', 3, 'Prova social',
@@ -509,12 +546,12 @@ function analisarComunicacao(ctx) {
 
   if (d.tamanhoTexto < 200) {
     c.itens.push({ status: 'unknown', rotulo: 'Conteúdo textual', detalhe: 'Texto insuficiente para analisar a comunicação (possível site renderizado por JavaScript).' });
-    return { available: false, reason: 'Conteúdo textual insuficiente para avaliar a comunicação — o site pode depender de JavaScript para exibir o conteúdo.', checks: c.itens };
+    return { available: false, reason: 'Conteúdo textual insuficiente para avaliar a comunicação - o site pode depender de JavaScript para exibir o conteúdo.', checks: c.itens };
   }
 
   const h1 = d.h1s[0] || '';
   checar(c, h1 ? 'pass' : 'fail', 4, 'Título principal identificável',
-    h1 ? '"' + h1.slice(0, 90) + '"' : 'Sem H1 — o visitante não encontra a mensagem principal em destaque.');
+    h1 ? '"' + h1.slice(0, 90) + '"' : 'Sem H1 - o visitante não encontra a mensagem principal em destaque.');
 
   const t = d.corpoBaixo;
   const primeiros = t.slice(0, 900);
@@ -546,7 +583,167 @@ function analisarComunicacao(ctx) {
   checar(c, estrutura ? 'pass' : 'warn', 2, 'Hierarquia da informação',
     estrutura ? 'Título e subtítulos organizam a leitura.' : 'A página tem pouca estruturação de títulos.');
 
-  return fechar(c, (s) => 'Comunicação com o público ' + faixaTexto(s).toLowerCase() + '. Avaliamos clareza, público, proposta de valor e foco no cliente a partir do texto real da página.');
+  const diferenciacao = /(exclusivo|exclusiva|(ú|u)nico no mercado|pioneiro|pioneira|primeiro a|primeira a|patenteado|certificado (exclusivo|(ú|u)nico)|especializa(ç|c)(ã|a)o (exclusiva|(ú|u)nica))/i.test(t);
+  checar(c, diferenciacao ? 'pass' : 'unknown', 1, 'Diferenciação comunicada',
+    diferenciacao ? 'O texto comunica algum tipo de diferencial exclusivo.' : 'Não identificamos linguagem de diferenciação clara - isso não é necessariamente um problema.');
+
+  const proximoPasso = (d.whatsapp || d.telefone || d.email || d.temFormulario) &&
+    /(fale|solicite|agende|compre|assine|cadastre|quero|contrate|entre em contato|saiba mais|come(ç|c)ar|whatsapp|orçamento|orcamento)/i.test(t);
+  checar(c, proximoPasso ? 'pass' : 'warn', 3, 'Próximo passo claro para o visitante',
+    proximoPasso ? 'Há canal de contato associado a uma chamada de ação no texto.' : 'Não ficou claro qual é o próximo passo esperado do visitante.');
+
+  /* --- inferência de categoria de negócio (para adequação ao público) --- */
+  const DICIONARIO_NEGOCIO = {
+    'Clínica / Saúde': /(cl(í|i)nica|consult(ó|o)rio|paciente|tratamento|odontol|dentista|dermatolog|fisioterap|psic(ó|o)log|est(é|e)tica|procedimento)/gi,
+    'Restaurante / Alimentação': /(card(á|a)pio|restaurante|reserva de mesa|delivery|pedido online|prato|culin(á|a)ria|chef)/gi,
+    'Advocacia / Jurídico': /(advogad|advocacia|jur(í|i)dic|direito (trabalhista|civil|penal|tribut(á|a)rio)|escrit(ó|o)rio de advocacia)/gi,
+    'Imobiliária': /(im(ó|o)vel|im(ó|o)veis|aluguel|loca(ç|c)(ã|a)o|corretor|apartamento|terreno|financiamento imobili(á|a)rio)/gi,
+    'E-commerce / Loja': /(carrinho de compras|frete|adicionar ao carrinho|parcelamento|comprar agora|estoque|cupom de desconto)/gi,
+    'Educação': /(curso|matr(í|i)cula|aula|turma|professor|ead|certificado de conclus(ã|a)o|vestibular)/gi,
+    'Serviços profissionais': /(or(ç|c)amento|atendimento personalizado|consultoria|presta(ç|c)(ã|a)o de servi(ç|c)os)/gi
+  };
+  let categoriaProvavel = null, maiorContagem = 0, totalSinais = 0;
+  Object.keys(DICIONARIO_NEGOCIO).forEach(function (nome) {
+    const n = (t.match(DICIONARIO_NEGOCIO[nome]) || []).length;
+    totalSinais += n;
+    if (n > maiorContagem) { maiorContagem = n; categoriaProvavel = nome; }
+  });
+  let confianca = 'baixa';
+  if (maiorContagem >= 5) confianca = 'alta';
+  else if (maiorContagem >= 2) confianca = 'média';
+
+  if (!categoriaProvavel || confianca === 'baixa') {
+    checar(c, 'unknown', 0, 'Categoria provável do negócio',
+      categoriaProvavel ? 'Possível ' + categoriaProvavel + ', mas com poucos sinais no texto (confiança baixa) - não penalizamos adequação.' : 'Não foi possível inferir a categoria do negócio com segurança.');
+  } else {
+    checar(c, 'pass', 0, 'Categoria provável do negócio',
+      categoriaProvavel + ' (confiança ' + confianca + ', ' + maiorContagem + ' sinal(is) textual(is)).');
+
+    const ESPERADO = {
+      'Clínica / Saúde': /(agend|marca(ç|c)(ã|a)o|whatsapp|telefone|profissionais?|especialistas?)/i,
+      'Restaurante / Alimentação': /(card(á|a)pio|endere(ç|c)o|localiza(ç|c)(ã|a)o|pedido|reserva)/i,
+      'Advocacia / Jurídico': /(contato|consulta|atendimento|whatsapp|telefone)/i,
+      'Imobiliária': /(contato|whatsapp|telefone|visita|corretor)/i,
+      'E-commerce / Loja': /(comprar|carrinho|frete|pagamento|entrega)/i,
+      'Educação': /(matr(í|i)cula|inscri(ç|c)(ã|a)o|contato|whatsapp)/i,
+      'Serviços profissionais': /(or(ç|c)amento|contato|whatsapp|telefone)/i
+    };
+    const regra = ESPERADO[categoriaProvavel];
+    const atende = regra ? regra.test(t) : true;
+    checar(c, atende ? 'pass' : 'warn', 2, 'Adequação ao público inferido',
+      atende ? 'A comunicação inclui os sinais esperados para este tipo de negócio.' : 'Para uma página de ' + categoriaProvavel.toLowerCase() + ', esperávamos sinais mais claros de contato/ação típicos desse segmento.');
+  }
+
+  return fechar(c, (s) => 'Comunicação com o público ' + faixaTexto(s).toLowerCase() + '. Avaliamos clareza, público, proposta de valor, diferenciação e adequação ao tipo de negócio inferido a partir do texto real da página.');
+}
+
+function analisarDesignExperiencia(ctx) {
+  const c = novaCategoria();
+  const d = ctx.html;
+  const h = ctx.corpoHtml;
+  const meta = { source: 'dom', confidence: 'medium' };
+
+  if (d.tamanhoTexto < 200) {
+    c.itens.push({ status: 'unknown', rotulo: 'Design e Experiência', detalhe: 'Conteúdo insuficiente para avaliar - possível site renderizado por JavaScript.', source: 'dom', confidence: 'low' });
+    return { available: false, reason: 'Avaliação baseada em sinais estruturais e técnicos de design e experiência detectáveis automaticamente. Não há renderização visual (screenshot) nesta versão.', checks: c.itens };
+  }
+
+  /* --- sinais de tecnologia/estrutura desatualizada --- */
+  const sinaisAntigos = [];
+  if (/<font\b/i.test(h)) sinaisAntigos.push('tag <font> (HTML anterior a 2000)');
+  if (/<marquee\b/i.test(h)) sinaisAntigos.push('<marquee> (texto rolante obsoleto)');
+  if (/<blink\b/i.test(h)) sinaisAntigos.push('<blink> (obsoleto)');
+  if (/<frameset\b|<frame\b/i.test(h)) sinaisAntigos.push('uso de framesets');
+  if (/<applet\b/i.test(h) || /application\/x-shockwave-flash/i.test(h)) sinaisAntigos.push('Flash/Applet (tecnologia descontinuada)');
+  const tabelasLayout = (h.match(/<table\b[^>]*(width|cellpadding|cellspacing|bgcolor)\s*=/gi) || []).length;
+  if (tabelasLayout >= 2) sinaisAntigos.push(tabelasLayout + ' tabela(s) com atributos típicos de layout em tabela (padrão anterior ao CSS moderno)');
+  if (!d.viewport) sinaisAntigos.push('ausência de meta viewport (não pensado para mobile)');
+
+  checar(c, sinaisAntigos.length === 0 ? 'pass' : (sinaisAntigos.length <= 1 ? 'warn' : 'fail'), 4,
+    'Sinais de desatualização', sinaisAntigos.length === 0
+      ? 'Nenhum padrão tecnicamente obsoleto encontrado no HTML.'
+      : 'Encontramos ' + sinaisAntigos.length + ' sinal(is): ' + sinaisAntigos.join('; ') + '.', meta);
+
+  /* --- consistência visual (proxy: estilos inline + <style>) --- */
+  const stylesInline = h.match(/style\s*=\s*["']([^"']*)["']/gi) || [];
+  const fontesDeclaradas = new Set();
+  const raiosDeclarados = new Set();
+  const coresDeclaradas = new Set();
+  stylesInline.forEach(function (decl) {
+    const fam = decl.match(/font-family\s*:\s*([^;"']+)/i);
+    if (fam) fontesDeclaradas.add(fam[1].trim().toLowerCase());
+    const rad = decl.match(/border-radius\s*:\s*([^;"']+)/i);
+    if (rad) raiosDeclarados.add(rad[1].trim());
+    const cor = decl.match(/(?:^|;)\s*color\s*:\s*(#[0-9a-f]{3,8}|rgb[a]?\([^)]+\))/i);
+    if (cor) coresDeclaradas.add(cor[1].trim().toLowerCase());
+  });
+  const blocosStyle = h.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
+  blocosStyle.forEach(function (bloco) {
+    (bloco.match(/font-family\s*:\s*([^;{}"']+)/gi) || []).forEach(function (f) {
+      fontesDeclaradas.add(f.replace(/font-family\s*:\s*/i, '').trim().toLowerCase());
+    });
+  });
+
+  if (stylesInline.length === 0 && blocosStyle.length === 0) {
+    checar(c, 'unknown', 3, 'Consistência tipográfica', 'Sem estilos inline/embutidos para avaliar - o CSS está em arquivo externo, não analisado nesta versão.', meta);
+  } else {
+    checar(c, fontesDeclaradas.size <= 2 ? 'pass' : (fontesDeclaradas.size <= 4 ? 'warn' : 'fail'), 3,
+      'Consistência tipográfica', fontesDeclaradas.size + ' família(s) tipográfica(s) distinta(s) declaradas no HTML/estilos embutidos.', meta);
+  }
+
+  if (raiosDeclarados.size >= 2) {
+    checar(c, raiosDeclarados.size <= 2 ? 'pass' : 'warn', 2, 'Consistência de componentes',
+      raiosDeclarados.size + ' valores diferentes de border-radius em estilos inline - pode indicar botões/cartões sem padrão visual único.', meta);
+  } else {
+    checar(c, 'unknown', 2, 'Consistência de componentes', 'Sinal insuficiente em estilos inline para avaliar (a maior parte do estilo provavelmente está em CSS externo).', meta);
+  }
+
+  /* --- layout: larguras fixas grandes e possível estouro horizontal --- */
+  const largurasFixas = (h.match(/width\s*:\s*(\d{4,})px/gi) || []).map(function (x) { return parseInt(x.replace(/\D+/g, ''), 10); });
+  const estouraViewport = largurasFixas.filter(function (px) { return px > 1600; });
+  checar(c, estouraViewport.length === 0 ? 'pass' : 'fail', 3, 'Elementos com largura fixa muito grande',
+    estouraViewport.length === 0 ? 'Nenhuma largura fixa acima de 1600px detectada.' : estouraViewport.length + ' elemento(s) com largura fixa acima de 1600px - risco de rolagem horizontal indesejada.', meta);
+
+  /* --- CTA com destaque visual (proxy: link/botão com estilo próprio vs texto puro) --- */
+  const linksBotoes = h.match(/<(a|button)\b[^>]*>/gi) || [];
+  const comEstiloProprio = linksBotoes.filter(function (t) {
+    return /style\s*=\s*["'][^"']*(background|padding|border)/i.test(t) || /class\s*=\s*["'][^"']*(btn|button|cta)/i.test(t);
+  }).length;
+  if (linksBotoes.length === 0) {
+    checar(c, 'unknown', 2, 'CTA com destaque visual', 'Nenhum link ou botão encontrado.', meta);
+  } else {
+    const prop = comEstiloProprio / linksBotoes.length;
+    checar(c, prop >= 0.15 ? 'pass' : 'warn', 2, 'CTA com destaque visual',
+      comEstiloProprio + ' de ' + linksBotoes.length + ' links/botões têm estilo ou classe própria (sinal de botão visualmente destacado, e não apenas texto sublinhado).', meta);
+  }
+
+  /* --- pop-ups/overlays intrusivos (heurística, baixa confiança) --- */
+  const popupSuspeito = /class\s*=\s*["'][^"']*(popup|modal|overlay|lightbox)[^"']*["']/i.test(h) && /position\s*:\s*fixed/i.test(h);
+  checar(c, popupSuspeito ? 'warn' : 'pass', 1, 'Sinal de pop-up/overlay',
+    popupSuspeito ? 'Encontramos marcação combinando classe de popup/modal com posicionamento fixo - pode ser um pop-up intrusivo (não confirmado sem renderização).' : 'Nenhum padrão de pop-up intrusivo identificado no HTML.',
+    { source: 'dom', confidence: 'low' });
+
+  /* --- primeira impressão / hero (acima da dobra ≈ primeiro 1/3 do HTML visível) --- */
+  const dobra = d.htmlVisivel.slice(0, Math.floor(d.htmlVisivel.length * 0.35));
+  const textoDobra = semTags(dobra).toLowerCase();
+  const sinaisHero = {
+    marca: !!d.title || /<h1\b/i.test(dobra),
+    atividade: /(oferecemos|desenvolvemos|criamos|fazemos|especialista|especializada|somos|atendemos|solu(ç|c)(õ|o)es|servi(ç|c)os|produtos)/i.test(textoDobra),
+    cta: /<(a|button)\b[^>]*>/i.test(dobra) && /(fale|solicite|agende|compre|assine|cadastre|quero|contrate|saiba mais|come(ç|c)ar|orçamento|whatsapp)/i.test(textoDobra),
+    contato: d.whatsapp || d.telefone || /wa\.me|tel:|mailto:/i.test(dobra)
+  };
+  const pontosHero = Object.values(sinaisHero).filter(Boolean).length;
+  const notaHero = Math.round((pontosHero / 4) * 100);
+  checar(c, pontosHero >= 3 ? 'pass' : (pontosHero >= 2 ? 'warn' : 'fail'), 4,
+    'Primeira impressão (acima da dobra)',
+    'Primeira impressão: ' + notaHero + '/100. Encontrado: ' + Object.keys(sinaisHero).filter(function(k){return sinaisHero[k];}).join(', ') + '. Ausente: ' + Object.keys(sinaisHero).filter(function(k){return !sinaisHero[k];}).join(', ') + '.',
+    meta);
+
+  const cat = fechar(c, function (s) { return 'Design e Experiência ' + faixaTexto(s).toLowerCase() + '. Avaliação baseada em sinais estruturais e técnicos de design e experiência detectáveis automaticamente no HTML/CSS entregue pelo servidor - não há renderização visual (screenshot) nesta versão, nem julgamento de estética/gosto.'; });
+  cat.heroScore = notaHero;
+  cat.confidenceGeral = 'medium';
+  cat.metodologia = 'Análise estática de HTML/CSS embutido - sem screenshot nem renderização headless nesta versão.';
+  return cat;
 }
 
 function analisarCredibilidade(ctx) {
@@ -554,27 +751,27 @@ function analisarCredibilidade(ctx) {
   const d = ctx.html;
   const t = d.corpoBaixo;
 
-  checar(c, ctx.finalUrl.protocol === 'https:' ? 'pass' : 'fail', 2, 'Conexão segura', ctx.finalUrl.protocol === 'https:' ? 'HTTPS ativo.' : 'Sem HTTPS.');
-  checar(c, d.telefone ? 'pass' : 'warn', 2, 'Telefone visível', d.telefone ? 'Encontrado.' : 'Nenhum telefone identificado.');
-  checar(c, d.email ? 'pass' : 'warn', 1, 'E-mail visível', d.email ? 'Encontrado.' : 'Nenhum e-mail identificado.');
+  checar(c, ctx.finalUrl.protocol === 'https:' ? 'pass' : 'fail', 2, 'Conexão segura', ctx.finalUrl.protocol === 'https:' ? 'HTTPS ativo.' : 'Sem HTTPS.', { grupo: 'transparencia' });
+  checar(c, d.telefone ? 'pass' : 'warn', 2, 'Telefone visível', d.telefone ? 'Encontrado.' : 'Nenhum telefone identificado.', { grupo: 'comercial' });
+  checar(c, d.email ? 'pass' : 'warn', 1, 'E-mail visível', d.email ? 'Encontrado.' : 'Nenhum e-mail identificado.', { grupo: 'comercial' });
 
   const endereco = /(rua|avenida|av\.|travessa|rodovia|bairro|cep|\b\d{5}-?\d{3}\b)/i.test(t);
-  checar(c, endereco ? 'pass' : 'warn', 2, 'Endereço ou localização', endereco ? 'Sinais de endereço encontrados.' : 'Nenhum endereço identificado.');
+  checar(c, endereco ? 'pass' : 'warn', 2, 'Endereço ou localização', endereco ? 'Sinais de endereço encontrados.' : 'Nenhum endereço identificado.', { grupo: 'institucional' });
 
   const nRedes = Object.keys(d.redes).filter(k => d.redes[k]).length;
-  checar(c, nRedes >= 1 ? 'pass' : 'warn', 2, 'Redes sociais', nRedes + ' rede(s) social(is) vinculada(s).');
+  checar(c, nRedes >= 1 ? 'pass' : 'warn', 2, 'Redes sociais', nRedes + ' rede(s) social(is) vinculada(s).', { grupo: 'comercial' });
 
   const sobre = /(sobre n(ó|o)s|quem somos|nossa hist(ó|o)ria|a empresa|institucional)/i.test(t);
-  checar(c, sobre ? 'pass' : 'warn', 2, 'Informações institucionais', sobre ? 'Há seção ou menção institucional.' : 'Nenhuma informação institucional identificada.');
+  checar(c, sobre ? 'pass' : 'warn', 2, 'Informações institucionais', sobre ? 'Há seção ou menção institucional.' : 'Nenhuma informação institucional identificada.', { grupo: 'institucional' });
 
   const provaSocial = /(depoimento|avalia(ç|c)(ã|a)o|avalia(ç|c)(õ|o)es|cases?|portf(ó|o)lio|clientes)/i.test(t);
-  checar(c, provaSocial ? 'pass' : 'warn', 2, 'Prova social', provaSocial ? 'Menções a clientes, cases ou avaliações.' : 'Nenhum sinal de prova social.');
+  checar(c, provaSocial ? 'pass' : 'warn', 2, 'Prova social', provaSocial ? 'Menções a clientes, cases ou avaliações.' : 'Nenhum sinal de prova social.', { grupo: 'comercial' });
 
   const politica = /(pol(í|i)tica de privacidade|termos de uso|lgpd)/i.test(t);
-  checar(c, politica ? 'pass' : 'warn', 1, 'Políticas e termos', politica ? 'Encontrados.' : 'Nenhuma política de privacidade ou termo identificado.');
+  checar(c, politica ? 'pass' : 'warn', 1, 'Políticas e termos', politica ? 'Encontrados.' : 'Nenhuma política de privacidade ou termo identificado.', { grupo: 'transparencia' });
 
   const cnpj = /\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b/.test(d.texto);
-  checar(c, cnpj ? 'pass' : 'warn', 1, 'CNPJ informado', cnpj ? 'Encontrado.' : 'Nenhum CNPJ identificado.');
+  checar(c, cnpj ? 'pass' : 'warn', 1, 'CNPJ informado', cnpj ? 'Encontrado.' : 'Nenhum CNPJ identificado.', { grupo: 'transparencia' });
 
   return fechar(c, (s) => 'Sinais de credibilidade ' + faixaTexto(s).toLowerCase() + ', com base nas informações públicas da página.');
 }
@@ -586,7 +783,7 @@ function analisarCredibilidade(ctx) {
 const IMPACTO = {
   security: 'Segurança', seo: 'SEO', performance: 'Performance',
   mobile: 'Experiência mobile', conversion: 'Conversão',
-  audienceFit: 'Comunicação', credibility: 'Credibilidade'
+  audienceFit: 'Comunicação', credibility: 'Credibilidade', design: 'Design e Experiência'
 };
 
 const RECOMENDACOES = {
@@ -621,7 +818,7 @@ const RECOMENDACOES = {
   'WhatsApp': 'Incluir um link direto de WhatsApp com mensagem pronta.',
   'Formulário': 'Disponibilizar um formulário curto de contato ou orçamento.',
   'Chamadas para ação': 'Definir um CTA principal e repeti-lo ao longo da página.',
-  'CTA no início da página': 'Colocar uma chamada para ação visível antes da primeira rolagem.',
+  'CTA no início do documento': 'Colocar uma chamada para ação visível antes da primeira rolagem.',
   'Prova social': 'Publicar depoimentos, cases ou avaliações de clientes.',
   'Benefícios explícitos': 'Explicar quais problemas o serviço resolve para o cliente.',
   'Fica claro o que a empresa faz': 'Abrir a página dizendo objetivamente o que a empresa faz.',
@@ -668,7 +865,7 @@ function montarGapsEFortes(categorias) {
     if (!cat.checks) return;
     cat.checks.forEach(function (it) {
       if (it.status === 'pass') {
-        strengths.push(it.rotulo + (it.detalhe ? ' — ' + it.detalhe : ''));
+        strengths.push(it.rotulo + (it.detalhe ? ' - ' + it.detalhe : ''));
       } else if (it.status === 'fail' || it.status === 'warn') {
         const critico = CRITICOS.indexOf(it.rotulo) !== -1;
         const severity = it.status === 'fail' ? (critico ? 'high' : 'medium') : (critico ? 'medium' : 'low');
@@ -705,7 +902,7 @@ function notaGeral(categorias) {
 }
 
 /* ------------------------------------------------------------------ *
- * 7. CACHE E RATE LIMIT (memória da instância — sem custo, best-effort)
+ * 7. CACHE E RATE LIMIT (memória da instância - sem custo, best-effort)
  * ------------------------------------------------------------------ */
 
 const CACHE = new Map();
@@ -730,6 +927,31 @@ const CABECALHOS = {
   'content-type': 'application/json; charset=utf-8',
   'cache-control': 'no-store'
 };
+
+function classificarNota(n) {
+  if (n === null) return 'Não calculada';
+  if (n >= 90) return 'Excelente';
+  if (n >= 75) return 'Muito bom';
+  if (n >= 60) return 'Bom, com pontos de atenção';
+  if (n >= 40) return 'Precisa de melhorias';
+  return 'Crítico';
+}
+
+function montarExecutivo(geral, categorias, gaps) {
+  const criticas = gaps.issues.filter(i => i.severity === 'high');
+  const altas = gaps.issues.filter(i => i.severity === 'medium');
+  const baixas = gaps.issues.filter(i => i.severity === 'low');
+
+  return {
+    notaGeral: geral.score,
+    classificacao: classificarNota(geral.score),
+    principaisForcas: gaps.strengths.slice(0, 5),
+    principaisProblemas: gaps.issues.slice(0, 5).map(i => ({ titulo: i.title, impacto: i.impact, prioridade: i.severity === 'high' ? 'CRÍTICA' : (i.severity === 'medium' ? 'ALTA' : 'MÉDIA') })),
+    oportunidades: baixas.slice(0, 4).map(i => i.title),
+    prioridades: { critica: criticas.length, alta: altas.length, media: baixas.length, baixa: 0 },
+    aviso: 'Cada nota e cada problema listado tem evidência correspondente nas categorias abaixo - nenhum valor foi estimado sem base em dado real.'
+  };
+}
 
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CABECALHOS, body: '' };
@@ -818,11 +1040,7 @@ exports.handler = async function (event) {
     audienceFit: analisarComunicacao(ctx),
     conversion: analisarConversao(ctx),
     credibility: analisarCredibilidade(ctx),
-    design: {
-      available: false,
-      reason: 'Design e modernidade não são avaliados automaticamente nesta versão — exigem análise visual da página renderizada.',
-      checks: []
-    }
+    design: analisarDesignExperiencia(ctx)
   };
 
   const geral = notaGeral(categorias);
@@ -834,12 +1052,14 @@ exports.handler = async function (event) {
     analisarPageSpeed(finalUrl.href, 'mobile').catch(e => ({ disponivel: false, erro: e.message, origem: 'pagespeed' }))
   ]);
 
+  const executive = montarExecutivo(geral, categorias, gaps);
+
   const dados = {
     url: finalUrl.href,
     host: finalUrl.hostname.replace(/^www./, ''),
     analyzedAt: new Date().toISOString(),
     demo: false,
-    engine: 'linkefy-audit/2.0',
+    engine: 'linkefy-audit/3.0',
     httpStatus: principal.status,
     redirectChain: principal.cadeia,
     overallScore: geral.score,
@@ -849,6 +1069,7 @@ exports.handler = async function (event) {
     categories: categorias,
     strengths: gaps.strengths,
     issues: gaps.issues,
+    executive: executive,
     external: {
       observatory: observatory,
       pagespeed: pagespeed,

@@ -1,0 +1,10 @@
+{
+  "name": "linkefy-audit-v2",
+  "version": "2.0.1",
+  "private": true,
+  "description": "Linkefy Audit — Scanner + MDN Observatory + Google PageSpeed (bug de runtime corrigido)",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}

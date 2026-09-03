@@ -1,13 +1,27 @@
-# Cabeçalhos HTTP reais — funcionam em Cloudflare Pages / Netlify.
-# O GitHub Pages IGNORA este arquivo (ver HARDENING.md).
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-xVnQ53bsLGnGgEUseIpvYw3J2dYd5PX/FPgLyQgoy7k=' 'sha256-dCh1d3rhTpX25ZWQgq3wvPACRb6xUQdt5QWSR38fjJk='; connect-src 'self'; manifest-src 'self'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), midi=(), serial=()
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
-  # ATIVAR SÓ APÓS confirmar HTTPS em todos os subdomínios (sem preload):
-  # Strict-Transport-Security: max-age=31536000; includeSubDomains
-  # NÃO usar Cross-Origin-Embedder-Policy: require-corp — quebra o Google Fonts.
+
+/
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-xVnQ53bsLGnGgEUseIpvYw3J2dYd5PX/FPgLyQgoy7k=' 'sha256-dCh1d3rhTpX25ZWQgq3wvPACRb6xUQdt5QWSR38fjJk='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-xVnQ53bsLGnGgEUseIpvYw3J2dYd5PX/FPgLyQgoy7k=' 'sha256-dCh1d3rhTpX25ZWQgq3wvPACRb6xUQdt5QWSR38fjJk='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests
+  Cache-Control: public, max-age=0, must-revalidate
+
+/diagnostico
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-sf/cE3Fj64gIjt5JDxg/eMjaD9dvQrzuXoBMVjwF1ho='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests
+  Cache-Control: public, max-age=0, must-revalidate
+
+/diagnostico.html
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-sf/cE3Fj64gIjt5JDxg/eMjaD9dvQrzuXoBMVjwF1ho='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

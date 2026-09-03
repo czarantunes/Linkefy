@@ -1,0 +1,29 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# /api/audit-site → função real
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
+# rota amigável do diagnóstico
+[[redirects]]
+  from = "/diagnostico"
+  to = "/diagnostico.html"
+  status = 200
+
+[[redirects]]
+  from = "/portfolio.html"
+  to = "/#projetos"
+  status = 301
+
+[[redirects]]
+  from = "/portfolio"
+  to = "/#projetos"
+  status = 301

@@ -1,0 +1,42 @@
+# Linkefy Digital
+
+> Agência de criação de sites e soluções digitais em Florianópolis, Santa Catarina. Desenvolve sites profissionais, landing pages, gestão de tráfego pago e presença digital para profissionais liberais e empresas locais em todo o Brasil.
+
+Linkefy Digital atende negócios que precisam transformar presença online em oportunidades reais: apresentar o negócio com autoridade, transmitir credibilidade, receber contatos diretos pelo WhatsApp, gerar leads e orçamentos, e vender produtos ou serviços pela internet.
+
+- Localização: Florianópolis, SC, Brasil
+- Atendimento: Santa Catarina e todo o Brasil
+- Contato: WhatsApp +55 48 98800-0996 · contato@linkefy.com.br
+- Instagram: https://www.instagram.com/linkefy_/
+
+## Serviços
+
+- [Criação de Sites Profissionais](https://www.linkefydigital.com.br/#servicos): sites institucionais responsivos, com domínio próprio, otimizados para carregamento rápido e para conversão em contato.
+- [Landing Pages](https://www.linkefydigital.com.br/#servicos): páginas de captura focadas em uma única ação, usadas em campanhas de tráfego pago.
+- [Gestão de Tráfego Pago](https://www.linkefydigital.com.br/#servicos): criação e gestão de campanhas para gerar demanda qualificada.
+- [Google Meu Negócio](https://www.linkefydigital.com.br/#servicos): estruturação e otimização do perfil para aparecer nas buscas locais.
+- [SEO Local e Presença Digital](https://www.linkefydigital.com.br/#servicos): otimização para buscas na região atendida.
+- [Hospedagem e Manutenção](https://www.linkefydigital.com.br/#servicos): manutenção técnica, atualizações e suporte contínuo.
+
+## Ferramentas
+
+- [Diagnóstico Digital](https://www.linkefydigital.com.br/diagnostico): ferramenta gratuita que analisa um site e devolve notas por categoria (segurança, SEO, performance, mobile, comunicação, conversão, credibilidade), com os problemas encontrados e o que fazer em cada um. A análise é feita sobre o HTML e os cabeçalhos HTTP reais da página informada. Core Web Vitals não são medidos. Inclui também um modo de avaliação do perfil no Google, preenchido pelo próprio usuário.
+
+## Projetos
+
+- [Loa Select](https://www.loaselect.com.br/): site e menu digital.
+- [Catafesta Art Culinária](https://www.linkefydigital.com.br/#projetos): projeto publicado.
+- [Plenah Clinic](https://www.linkefydigital.com.br/#projetos): projeto publicado.
+
+## Páginas
+
+- [Página inicial](https://www.linkefydigital.com.br/): serviços, projetos, para quem é e contato.
+- [O que entregamos](https://www.linkefydigital.com.br/#entregamos): design responsivo, autoridade digital, conexão com clientes e integrações com WhatsApp e redes sociais.
+- [Para quem é](https://www.linkefydigital.com.br/#paraquem): profissionais liberais e empresas locais que querem fortalecer a presença digital.
+- [Projetos](https://www.linkefydigital.com.br/#projetos): trabalhos publicados.
+- [Contato](https://www.linkefydigital.com.br/#contato): WhatsApp, e-mail e Instagram.
+
+## Observações
+
+- Este arquivo existe para interoperabilidade com ferramentas de IA que o consultem. A Busca do Google declara publicamente que ignora llms.txt, sem efeito positivo ou negativo em ranking.
+- Idiomas disponíveis no site: português do Brasil (original), inglês e espanhol.

@@ -15,14 +15,15 @@ const dns = require('dns').promises;
 const net = require('net');
 
 const { analisarObservatory, analisarPageSpeed, normalizarEvidencias } = require('./externa.js');
+const { analisarExperienciaVisual } = require('./visual-audit.js');
 const TIMEOUT_MS = 8000;
 const MAX_REDIRECTS = 3;
 const MAX_BYTES = 2 * 1024 * 1024;
 const UA = 'LinkefyAudit/1.0 (+https://www.linkefydigital.com.br/diagnostico)';
 
 const PESOS = {
-  performance: 18, seo: 18, security: 13, audienceFit: 13,
-  conversion: 13, mobile: 9, design: 12, credibility: 4
+  performance: 16, seo: 16, security: 12, audienceFit: 12,
+  conversion: 12, mobile: 8, design: 10, credibility: 4, visualExperience: 10
 };
 
 /* ------------------------------------------------------------------ *
@@ -494,6 +495,25 @@ function analisarMobile(ctx) {
   return fechar(c, (s) => 'Experiência mobile ' + faixaTexto(s).toLowerCase() + ', avaliada por sinais presentes no HTML.');
 }
 
+function detectarProvaSocial(t) {
+  return {
+    mentionsClients: /(nossos clientes|clientes atendidos|clientes satisfeitos|quem confia|parceiros)/i.test(t),
+    hasCaseStudies: /(cases?|portf(ó|o)lio|resultados? (real|reais)|projetos? (entregue|realizado))/i.test(t),
+    hasTestimonials: /(depoimento|depoimentos|"[^"]{15,}"\s*-\s*\w|disse que|conta que)/i.test(t),
+    hasReviews: /(avalia(ç|c)(ã|a)o|avalia(ç|c)(õ|o)es|nota \d(,\d)? de 5|estrelas)/i.test(t),
+    hasLogos: /(empresas que confiam|marcas que|logotipos? de clientes)/i.test(t)
+  };
+}
+function resumoProvaSocial(sinais) {
+  const partes = [];
+  if (sinais.hasCaseStudies) partes.push('portfólio/cases');
+  if (sinais.hasTestimonials) partes.push('depoimentos');
+  if (sinais.hasReviews) partes.push('avaliações');
+  if (sinais.mentionsClients) partes.push('menção a clientes');
+  if (sinais.hasLogos) partes.push('logos de clientes');
+  return partes;
+}
+
 function analisarConversao(ctx) {
   const c = novaCategoria();
   const d = ctx.html;
@@ -529,9 +549,15 @@ function analisarConversao(ctx) {
     ctaTopo ? 'Há chamada para ação na primeira metade do HTML - indício de estar acima da dobra.' : 'Posicionamento visual do CTA não confirmado nesta versão (sem renderização real da página).',
     { source: 'dom', confidence: 'medium' });
 
-  const prova = /(depoimento|depoimentos|avalia(ç|c)(ã|a)o|avalia(ç|c)(õ|o)es|clientes? (dizem|atendidos)|cases?|portf(ó|o)lio|resultados? (real|reais)|quem confia|parceiros)/i.test(t);
-  checar(c, prova ? 'pass' : 'fail', 3, 'Prova social',
-    prova ? 'Menções a depoimentos, cases ou avaliações.' : 'Nenhum sinal de depoimento, case ou avaliação.');
+  const sinaisProva = detectarProvaSocial(t);
+  const partesProva = resumoProvaSocial(sinaisProva);
+  const temAlgumaProva = partesProva.length > 0;
+  const temDepoimentoOuAvaliacao = sinaisProva.hasTestimonials || sinaisProva.hasReviews;
+  checar(c, temDepoimentoOuAvaliacao ? 'pass' : (temAlgumaProva ? 'warn' : 'fail'), 3, 'Prova social',
+    temAlgumaProva
+      ? (partesProva.join('/') + ' detectado(s)' + (temDepoimentoOuAvaliacao ? '.' : ', mas nenhum depoimento ou avaliação explícita encontrada.'))
+      : 'Nenhum sinal de depoimento, case ou avaliação.',
+    { source: 'dom', confidence: 'medium' });
 
   const beneficios = /(benef(í|i)cio|vantagem|vantagens|por que|porque escolher|diferencial|diferenciais|resultado)/i.test(t);
   checar(c, beneficios ? 'pass' : 'warn', 2, 'Benefícios explícitos',
@@ -599,25 +625,43 @@ function analisarComunicacao(ctx) {
     'Advocacia / Jurídico': /(advogad|advocacia|jur(í|i)dic|direito (trabalhista|civil|penal|tribut(á|a)rio)|escrit(ó|o)rio de advocacia)/gi,
     'Imobiliária': /(im(ó|o)vel|im(ó|o)veis|aluguel|loca(ç|c)(ã|a)o|corretor|apartamento|terreno|financiamento imobili(á|a)rio)/gi,
     'E-commerce / Loja': /(carrinho de compras|frete|adicionar ao carrinho|parcelamento|comprar agora|estoque|cupom de desconto)/gi,
-    'Educação': /(curso|matr(í|i)cula|aula|turma|professor|ead|certificado de conclus(ã|a)o|vestibular)/gi,
+    'Educação': /(matr(í|i)cula|turma|professor|ead|certificado de conclus(ã|a)o|vestibular|apostila|grade curricular)/gi,
+    'Agência Digital / Marketing Digital': /(cria(ç|c)(ã|a)o de sites?|landing pages?|tr(á|a)fego pago|gest(ã|a)o de tr(á|a)fego|marketing digital|solu(ç|c)(õ|o)es digitais|google meu neg(ó|o)cio|ag(ê|e)ncia digital|presen(ç|c)a digital|seo\b)/gi,
     'Serviços profissionais': /(or(ç|c)amento|atendimento personalizado|consultoria|presta(ç|c)(ã|a)o de servi(ç|c)os)/gi
   };
-  let categoriaProvavel = null, maiorContagem = 0, totalSinais = 0;
+  /* Prioriza título/H1/meta description/hero (primeiros 900 caracteres) sobre o corpo genérico -
+     evita que uma única menção solta em rodapé/blog decida a categoria. */
+  const tituloEH1 = ((d.title || '') + ' ' + (d.h1s[0] || '') + ' ' + (d.description || '')).toLowerCase();
+  const heroTexto = primeiros; // já calculado acima (primeiros 900 caracteres visíveis)
+  let categoriaProvavel = null, maiorContagem = 0;
+  const pontuacoes = {};
   Object.keys(DICIONARIO_NEGOCIO).forEach(function (nome) {
-    const n = (t.match(DICIONARIO_NEGOCIO[nome]) || []).length;
-    totalSinais += n;
-    if (n > maiorContagem) { maiorContagem = n; categoriaProvavel = nome; }
+    const noTitulo = (tituloEH1.match(DICIONARIO_NEGOCIO[nome]) || []).length;
+    const noHero = (heroTexto.match(DICIONARIO_NEGOCIO[nome]) || []).length;
+    const noResto = (t.match(DICIONARIO_NEGOCIO[nome]) || []).length;
+    // peso maior para título/H1/description e para o hero do que para o corpo geral
+    const pontos = (noTitulo * 4) + (noHero * 2) + Math.min(noResto, 5);
+    pontuacoes[nome] = pontos;
+    if (pontos > maiorContagem) { maiorContagem = pontos; categoriaProvavel = nome; }
   });
-  let confianca = 'baixa';
-  if (maiorContagem >= 5) confianca = 'alta';
-  else if (maiorContagem >= 2) confianca = 'média';
+  // detectar ambiguidade: segunda categoria com pontuação próxima da primeira
+  const ordenadas = Object.keys(pontuacoes).sort(function (a, b) { return pontuacoes[b] - pontuacoes[a]; });
+  const segundaColocada = ordenadas[1];
+  const ambiguo = segundaColocada && pontuacoes[segundaColocada] > 0 && (pontuacoes[segundaColocada] >= maiorContagem * 0.7);
 
-  if (!categoriaProvavel || confianca === 'baixa') {
+  let confianca = 'baixa';
+  if (!ambiguo) {
+    if (maiorContagem >= 8) confianca = 'alta';
+    else if (maiorContagem >= 3) confianca = 'média';
+  }
+
+  if (!categoriaProvavel || maiorContagem === 0 || confianca === 'baixa') {
     checar(c, 'unknown', 0, 'Categoria provável do negócio',
-      categoriaProvavel ? 'Possível ' + categoriaProvavel + ', mas com poucos sinais no texto (confiança baixa) - não penalizamos adequação.' : 'Não foi possível inferir a categoria do negócio com segurança.');
+      ambiguo ? 'Categoria não determinada com segurança - sinais de "' + categoriaProvavel + '" e "' + segundaColocada + '" são semelhantes.'
+        : (categoriaProvavel ? 'Possível ' + categoriaProvavel + ', mas com poucos sinais (confiança baixa) - não penalizamos adequação.' : 'Categoria não determinada com segurança - texto insuficiente para inferir o segmento.'));
   } else {
     checar(c, 'pass', 0, 'Categoria provável do negócio',
-      categoriaProvavel + ' (confiança ' + confianca + ', ' + maiorContagem + ' sinal(is) textual(is)).');
+      categoriaProvavel + ' (confiança ' + confianca + ', sinais no título/H1/description e no hero considerados com peso maior).');
 
     const ESPERADO = {
       'Clínica / Saúde': /(agend|marca(ç|c)(ã|a)o|whatsapp|telefone|profissionais?|especialistas?)/i,
@@ -626,6 +670,7 @@ function analisarComunicacao(ctx) {
       'Imobiliária': /(contato|whatsapp|telefone|visita|corretor)/i,
       'E-commerce / Loja': /(comprar|carrinho|frete|pagamento|entrega)/i,
       'Educação': /(matr(í|i)cula|inscri(ç|c)(ã|a)o|contato|whatsapp)/i,
+      'Agência Digital / Marketing Digital': /(or(ç|c)amento|whatsapp|contato|portf(ó|o)lio|servi(ç|c)os)/i,
       'Serviços profissionais': /(or(ç|c)amento|contato|whatsapp|telefone)/i
     };
     const regra = ESPERADO[categoriaProvavel];
@@ -644,7 +689,7 @@ function analisarDesignExperiencia(ctx) {
   const meta = { source: 'dom', confidence: 'medium' };
 
   if (d.tamanhoTexto < 200) {
-    c.itens.push({ status: 'unknown', rotulo: 'Design e Experiência', detalhe: 'Conteúdo insuficiente para avaliar - possível site renderizado por JavaScript.', source: 'dom', confidence: 'low' });
+    c.itens.push({ status: 'unknown', rotulo: 'Design Técnico', detalhe: 'Conteúdo insuficiente para avaliar - possível site renderizado por JavaScript.', source: 'dom', confidence: 'low' });
     return { available: false, reason: 'Avaliação baseada em sinais estruturais e técnicos de design e experiência detectáveis automaticamente. Não há renderização visual (screenshot) nesta versão.', checks: c.itens };
   }
 
@@ -739,7 +784,7 @@ function analisarDesignExperiencia(ctx) {
     'Primeira impressão: ' + notaHero + '/100. Encontrado: ' + Object.keys(sinaisHero).filter(function(k){return sinaisHero[k];}).join(', ') + '. Ausente: ' + Object.keys(sinaisHero).filter(function(k){return !sinaisHero[k];}).join(', ') + '.',
     meta);
 
-  const cat = fechar(c, function (s) { return 'Design e Experiência ' + faixaTexto(s).toLowerCase() + '. Avaliação baseada em sinais estruturais e técnicos de design e experiência detectáveis automaticamente no HTML/CSS entregue pelo servidor - não há renderização visual (screenshot) nesta versão, nem julgamento de estética/gosto.'; });
+  const cat = fechar(c, function (s) { return 'Design Técnico ' + faixaTexto(s).toLowerCase() + '. Esta nota mede apenas a estrutura técnica relacionada ao design (HTML/CSS, responsividade, padrões, semântica) - NÃO é uma avaliação da aparência visual real. Veja a categoria Experiência Visual para a análise da interface renderizada.'; });
   cat.heroScore = notaHero;
   cat.confidenceGeral = 'medium';
   cat.metodologia = 'Análise estática de HTML/CSS embutido - sem screenshot nem renderização headless nesta versão.';
@@ -764,8 +809,11 @@ function analisarCredibilidade(ctx) {
   const sobre = /(sobre n(ó|o)s|quem somos|nossa hist(ó|o)ria|a empresa|institucional)/i.test(t);
   checar(c, sobre ? 'pass' : 'warn', 2, 'Informações institucionais', sobre ? 'Há seção ou menção institucional.' : 'Nenhuma informação institucional identificada.', { grupo: 'institucional' });
 
-  const provaSocial = /(depoimento|avalia(ç|c)(ã|a)o|avalia(ç|c)(õ|o)es|cases?|portf(ó|o)lio|clientes)/i.test(t);
-  checar(c, provaSocial ? 'pass' : 'warn', 2, 'Prova social', provaSocial ? 'Menções a clientes, cases ou avaliações.' : 'Nenhum sinal de prova social.', { grupo: 'comercial' });
+  const sinaisProvaCred = detectarProvaSocial(t);
+  const partesProvaCred = resumoProvaSocial(sinaisProvaCred);
+  checar(c, partesProvaCred.length > 0 ? 'pass' : 'warn', 2, 'Prova social',
+    partesProvaCred.length > 0 ? (partesProvaCred.join('/') + ' detectado(s).') : 'Nenhum sinal de prova social.',
+    { grupo: 'comercial', source: 'dom', confidence: 'medium' });
 
   const politica = /(pol(í|i)tica de privacidade|termos de uso|lgpd)/i.test(t);
   checar(c, politica ? 'pass' : 'warn', 1, 'Políticas e termos', politica ? 'Encontrados.' : 'Nenhuma política de privacidade ou termo identificado.', { grupo: 'transparencia' });
@@ -783,7 +831,7 @@ function analisarCredibilidade(ctx) {
 const IMPACTO = {
   security: 'Segurança', seo: 'SEO', performance: 'Performance',
   mobile: 'Experiência mobile', conversion: 'Conversão',
-  audienceFit: 'Comunicação', credibility: 'Credibilidade', design: 'Design e Experiência'
+  audienceFit: 'Comunicação', credibility: 'Credibilidade', design: 'Design Técnico', visualExperience: 'Experiência Visual'
 };
 
 const RECOMENDACOES = {
@@ -1043,14 +1091,16 @@ exports.handler = async function (event) {
     design: analisarDesignExperiencia(ctx)
   };
 
+  // Chamar integrações externas e a análise visual em paralelo (timeout independente cada uma)
+  const [observatory, pagespeed, experienciaVisual] = await Promise.all([
+    analisarObservatory(finalUrl.href).catch(e => ({ disponivel: false, erro: e.message, origem: 'observatory' })),
+    analisarPageSpeed(finalUrl.href, 'mobile').catch(e => ({ disponivel: false, erro: e.message, origem: 'pagespeed' })),
+    analisarExperienciaVisual(finalUrl.href, ip).catch(e => ({ available: false, reason: 'Experiência visual não verificada - ' + e.message, checks: [] }))
+  ]);
+
+  categorias.visualExperience = experienciaVisual;
   const geral = notaGeral(categorias);
   const gaps = montarGapsEFortes(categorias);
-
-  // Chamar integrações externas em paralelo (com timeout independente)
-  const [observatory, pagespeed] = await Promise.all([
-    analisarObservatory(finalUrl.href).catch(e => ({ disponivel: false, erro: e.message, origem: 'observatory' })),
-    analisarPageSpeed(finalUrl.href, 'mobile').catch(e => ({ disponivel: false, erro: e.message, origem: 'pagespeed' }))
-  ]);
 
   const executive = montarExecutivo(geral, categorias, gaps);
 
@@ -1059,7 +1109,7 @@ exports.handler = async function (event) {
     host: finalUrl.hostname.replace(/^www./, ''),
     analyzedAt: new Date().toISOString(),
     demo: false,
-    engine: 'linkefy-audit/3.0',
+    engine: 'linkefy-audit/4.0',
     httpStatus: principal.status,
     redirectChain: principal.cadeia,
     overallScore: geral.score,

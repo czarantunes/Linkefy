@@ -1,131 +1,94 @@
 /**
- * Linkefy Audit v2 - Extensão com integrações externas reais
- * 
- * Estende o motor Linkefy original com:
- * - MDN HTTP Observatory API (segurança HTTP real)
+ * Linkefy Audit v4 - Integrações externas reais (Observatory + PageSpeed)
+ *
+ * - MDN HTTP Observatory API v2 (segurança HTTP real)
  * - Google PageSpeed Insights API (performance/Core Web Vitals reais)
- * 
- * Nenhuma integração tem custo obrigatório.
- * Observatory é 100% gratuito e sem limite.
- * PageSpeed é gratuito com quota padrão (150 req/min/IP).
- * 
- * Requisições reais + tratamento de erro/timeout + cache.
- * Se indisponível: "Fonte externa indisponível nesta análise."
- * Nunca substitui resposta externa por número inventado.
+ *
+ * Nenhuma integração tem custo obrigatório. Requisições reais + timeout + cache.
+ * Se indisponível: "[Fonte] temporariamente indisponível" - nunca inventa número.
  */
 
-const CACHE_TTL = 600000; // 10 min
-const OBSERVATORY_TIMEOUT = 10000; // 10s
-const PAGESPEED_TIMEOUT = 15000; // 15s
+const CACHE_TTL_OBSERVATORY = 600000;     // 10 min
+const CACHE_TTL_PAGESPEED = 1800000;      // 30 min - mais agressivo para não bater na quota
+const OBSERVATORY_TIMEOUT = 10000;
+const PAGESPEED_TIMEOUT = 15000;
 
 const cacheObservatory = new Map();
 const cachePageSpeed = new Map();
 
 /**
- * MDN HTTP Observatory
- * Endpoint: https://http-observatory.mozilla.org/api/v2/scan
- * 
- * Retorna grade (A+, A, B, C, D, E, F) e score (0-100).
- * Documentação: https://mozilla.github.io/http-observatory/
+ * MDN HTTP Observatory - API v2 (domínio novo desde a migração para MDN em 2024).
+ * A antiga API (http-observatory.mozilla.org, com polling scan_id) foi desativada
+ * em 31/10/2024. A v2 é uma ÚNICA chamada POST síncrona - sem polling.
+ * Endpoint real: https://observatory-api.mdn.mozilla.net/api/v2/scan?host=HOST
+ * Doc: https://github.com/mdn/mdn-http-observatory
  */
 async function analisarObservatory(urlStr) {
-  const url = new URL(urlStr).hostname;
-  const cacheKey = 'obs:' + url;
-  
-  // Checar cache
+  const host = new URL(urlStr).hostname;
+  const cacheKey = 'obs:' + host;
+
   const cached = cacheObservatory.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return { ...cached.data, origem: 'cache' };
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_OBSERVATORY) {
+    return Object.assign({}, cached.data, { origem: 'cache' });
   }
-  
+
   try {
-    const iniciar = new URL('https://http-observatory.mozilla.org/api/v2/scan');
-    iniciar.searchParams.append('host', url);
-    iniciar.searchParams.append('publish', 'false');
-    
-    const resIniciar = await Promise.race([
-      fetch(iniciar.toString(), { method: 'POST' }),
-      new Promise((_, r) => setTimeout(() => r(new Error('Observatory timeout')), OBSERVATORY_TIMEOUT))
-    ]);
-    
-    if (!resIniciar.ok) {
-      return { 
-        disponivel: false, 
-        erro: 'Observatory respondeu com HTTP ' + resIniciar.status,
-        origem: 'observatory'
-      };
+    const endpoint = 'https://observatory-api.mdn.mozilla.net/api/v2/scan?host=' + encodeURIComponent(host);
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), OBSERVATORY_TIMEOUT);
+    let res;
+    try {
+      res = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctrl.signal });
+    } finally {
+      clearTimeout(t);
     }
-    
-    const scan = await resIniciar.json();
-    const scanId = scan.scan_id;
-    if (!scanId) {
-      return { disponivel: false, erro: 'Sem scan_id', origem: 'observatory' };
+
+    if (!res.ok) {
+      return { disponivel: false, erro: 'Observatory respondeu com HTTP ' + res.status, origem: 'observatory' };
     }
-    
-    // Aguardar resultado (polling)
-    let resultado = null;
-    for (let i = 0; i < 20; i++) {
-      const resPoll = await Promise.race([
-        fetch(`https://http-observatory.mozilla.org/api/v2/scan/${scanId}`),
-        new Promise((_, r) => setTimeout(() => r(new Error('Observatory timeout')), OBSERVATORY_TIMEOUT))
-      ]);
-      if (!resPoll.ok) continue;
-      
-      const dados = await resPoll.json();
-      if (dados.state === 'FINISHED') {
-        resultado = dados;
-        break;
-      }
-      await new Promise(r => setTimeout(r, 500));
+
+    const dados = await res.json();
+    if (dados.error) {
+      return { disponivel: false, erro: dados.message || dados.error, origem: 'observatory' };
     }
-    
-    if (!resultado) {
-      return { disponivel: false, erro: 'Scan não concluído', origem: 'observatory' };
-    }
-    
+
     const r = {
       disponivel: true,
-      grade: resultado.grade || 'N/A',
-      score: resultado.score || null,
+      grade: dados.grade || 'N/A',
+      score: typeof dados.score === 'number' ? dados.score : null,
       testes: {
-        aprovados: resultado.tests ? Object.keys(resultado.tests).filter(t => resultado.tests[t].pass === true).length : 0,
-        reprovados: resultado.tests ? Object.keys(resultado.tests).filter(t => resultado.tests[t].pass === false).length : 0
+        aprovados: typeof dados.tests_passed === 'number' ? dados.tests_passed : 0,
+        reprovados: typeof dados.tests_failed === 'number' ? dados.tests_failed : 0,
+        total: typeof dados.tests_quantity === 'number' ? dados.tests_quantity : 0
       },
-      detalhes: resultado.tests || {},
+      detailsUrl: dados.details_url || null,
       origem: 'observatory'
     };
-    
+
     cacheObservatory.set(cacheKey, { data: r, timestamp: Date.now() });
     return r;
   } catch (e) {
-    return { 
-      disponivel: false, 
-      erro: e.message,
-      origem: 'observatory'
-    };
+    return { disponivel: false, erro: e.name === 'AbortError' ? 'Tempo de resposta excedido.' : e.message, origem: 'observatory' };
   }
 }
 
 /**
- * Google PageSpeed Insights
+ * Google PageSpeed Insights.
  * Endpoint: https://www.googleapis.com/pagespeedonline/v5/runPagespeed
- * 
- * Retorna scores de performance, accessibility, best practices, SEO.
- * Core Web Vitals quando disponíveis (LCP, CLS, INP, FCP, TTFB).
- * 
- * Sem API key: 150 requisições por minuto por IP (quota padrão).
- * Com API key: 25000 por dia (adicionar ?key=YOUR_KEY se necessário).
+ * Sem API key: quota compartilhada e baixa (~poucas centenas/dia por IP de origem) -
+ * por isso o cache aqui é de 30 min, bem mais agressivo que o do scanner próprio,
+ * para reduzir a chance de bater em HTTP 429 em uso comercial.
  */
-async function analisarPageSpeed(urlStr, strategy = 'mobile') {
+async function analisarPageSpeed(urlStr, strategy) {
+  strategy = strategy || 'mobile';
   const url = new URL(urlStr).toString();
   const cacheKey = 'psi:' + url + ':' + strategy;
-  
-  // Checar cache
+
   const cached = cachePageSpeed.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return { ...cached.data, origem: 'cache' };
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_PAGESPEED) {
+    return Object.assign({}, cached.data, { origem: 'cache' });
   }
-  
+
   try {
     const endpoint = new URL('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
     endpoint.searchParams.append('url', url);
@@ -134,77 +97,57 @@ async function analisarPageSpeed(urlStr, strategy = 'mobile') {
     endpoint.searchParams.append('category', 'accessibility');
     endpoint.searchParams.append('category', 'best-practices');
     endpoint.searchParams.append('category', 'seo');
-    
-    const resPSI = await Promise.race([
-      fetch(endpoint.toString()),
-      new Promise((_, r) => setTimeout(() => r(new Error('PageSpeed timeout')), PAGESPEED_TIMEOUT))
-    ]);
-    
-    if (!resPSI.ok) {
-      if (resPSI.status === 429) {
-        return { 
-          disponivel: false, 
-          erro: 'Quota de PageSpeed excedida. Tente novamente em alguns minutos.',
-          origem: 'pagespeed'
-        };
-      }
-      return { 
-        disponivel: false, 
-        erro: 'PageSpeed respondeu com HTTP ' + resPSI.status,
-        origem: 'pagespeed'
-      };
+
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), PAGESPEED_TIMEOUT);
+    let res;
+    try {
+      res = await fetch(endpoint.toString(), { signal: ctrl.signal });
+    } finally {
+      clearTimeout(t);
     }
-    
-    const dados = await resPSI.json();
+
+    if (!res.ok) {
+      if (res.status === 429) {
+        return { disponivel: false, erro: 'Quota do PageSpeed excedida.', origem: 'pagespeed' };
+      }
+      return { disponivel: false, erro: 'PageSpeed respondeu com HTTP ' + res.status, origem: 'pagespeed' };
+    }
+
+    const dados = await res.json();
     const metricas = dados.lighthouseResult || {};
-    
+    const cat = metricas.categories || {};
+    const aud = metricas.audits || {};
+
     const r = {
       disponivel: true,
       strategy: strategy,
       scores: {
-        performance: metricas.categories?.performance?.score
-          ? Math.round(metricas.categories.performance.score * 100)
-          : null,
-        accessibility: metricas.categories?.accessibility?.score
-          ? Math.round(metricas.categories.accessibility.score * 100)
-          : null,
-        bestPractices: metricas.categories?.['best-practices']?.score
-          ? Math.round(metricas.categories['best-practices'].score * 100)
-          : null,
-        seo: metricas.categories?.seo?.score
-          ? Math.round(metricas.categories.seo.score * 100)
-          : null
+        performance: cat.performance && typeof cat.performance.score === 'number' ? Math.round(cat.performance.score * 100) : null,
+        accessibility: cat.accessibility && typeof cat.accessibility.score === 'number' ? Math.round(cat.accessibility.score * 100) : null,
+        bestPractices: cat['best-practices'] && typeof cat['best-practices'].score === 'number' ? Math.round(cat['best-practices'].score * 100) : null,
+        seo: cat.seo && typeof cat.seo.score === 'number' ? Math.round(cat.seo.score * 100) : null
       },
       cwv: {
-        lcp: metricas.audits?.['largest-contentful-paint']?.displayValue || 'Não disponível',
-        cls: metricas.audits?.['cumulative-layout-shift']?.displayValue || 'Não disponível',
-        inp: metricas.audits?.['interaction-to-next-paint']?.displayValue || 'Não disponível',
-        fcp: metricas.audits?.['first-contentful-paint']?.displayValue || 'Não disponível',
-        ttfb: metricas.audits?.['server-response-time']?.displayValue || 'Não disponível'
+        lcp: (aud['largest-contentful-paint'] && aud['largest-contentful-paint'].displayValue) || 'Não disponível',
+        cls: (aud['cumulative-layout-shift'] && aud['cumulative-layout-shift'].displayValue) || 'Não disponível',
+        inp: (aud['interaction-to-next-paint'] && aud['interaction-to-next-paint'].displayValue) || 'Não disponível',
+        fcp: (aud['first-contentful-paint'] && aud['first-contentful-paint'].displayValue) || 'Não disponível',
+        ttfb: (aud['server-response-time'] && aud['server-response-time'].displayValue) || 'Não disponível'
       },
       origem: 'pagespeed'
     };
-    
+
     cachePageSpeed.set(cacheKey, { data: r, timestamp: Date.now() });
     return r;
   } catch (e) {
-    return { 
-      disponivel: false, 
-      erro: e.message,
-      origem: 'pagespeed'
-    };
+    return { disponivel: false, erro: e.name === 'AbortError' ? 'Tempo de resposta excedido.' : e.message, origem: 'pagespeed' };
   }
 }
 
-/**
- * Normalizar evidências - unifica o que veio de cada fonte
- */
 function normalizarEvidencias(scanner, observatory, pagespeed) {
   return {
-    scanner: {
-      timestamp: new Date().toISOString(),
-      categories: scanner // as 7 categorias já calculadas
-    },
+    scanner: { timestamp: new Date().toISOString(), categories: scanner },
     observatory: observatory,
     pagespeed: pagespeed,
     fontes: [
@@ -219,7 +162,8 @@ module.exports = {
   analisarObservatory,
   analisarPageSpeed,
   normalizarEvidencias,
-  CACHE_TTL,
+  CACHE_TTL_OBSERVATORY,
+  CACHE_TTL_PAGESPEED,
   OBSERVATORY_TIMEOUT,
   PAGESPEED_TIMEOUT
 };

@@ -7,7 +7,7 @@
 <meta name="description" content="Analise segurança, velocidade, SEO, experiência, comunicação e potencial de conversão do seu site em um único diagnóstico.">
 <meta name="robots" content="index, follow">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-mr5K2a/GOPxWEzrhdNc9vvilHSJO5L2ZCPAdQNyqcZQ='; connect-src 'self' https://http-observatory.mozilla.org https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'sha256-3QhmTYbuG4US6N7u+gDz1LEDyaZFAk14c3YwGbJU6fk='; connect-src 'self' https://observatory-api.mdn.mozilla.net https://www.googleapis.com; manifest-src 'self'; upgrade-insecure-requests">
 <link rel="canonical" href="https://www.linkefydigital.com.br/diagnostico">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Linkefy">
@@ -196,7 +196,10 @@
 <h2 style="font-family:Sora;font-weight:800;font-size:clamp(24px,3.4vw,38px);letter-spacing:-.02em;line-height:1.1;margin-top:10px;word-break:break-word">Site analisado: <span id="rel-host" style="color:#F7941D"></span></h2>
 <p style="color:#9d9d9d;font-size:14.5px;margin-top:8px">Data da análise: <span id="rel-data"></span></p>
 </div>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
 <p id="rel-selo" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#b9b9b9;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px"></p>
+<button type="button" id="btn-novo-topo" class="lk-btn-ghost lk-noprint" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#d6d6d6;font-family:Sora;font-weight:600;font-size:13.5px;padding:10px 18px;border-radius:10px;min-height:44px;cursor:pointer;white-space:nowrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F7941D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>Analisar outro site</button>
+</div>
 </div>
 
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:clamp(26px,3.5vw,38px);align-items:stretch">
@@ -342,6 +345,7 @@ var ICONES = {
   seo:        '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.7-4.7"/>',
   mobile:     '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
   design:     '<path d="M3 8.5 12 3l9 5.5-9 5.5Z"/><path d="M3 15.5 12 21l9-5.5"/>',
+  visualExperience: '<path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z"/><circle cx="12" cy="12" r="3"/>',
   audienceFit:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
   conversion: '<path d="M3 3v18h18"/><polyline points="7 15 11 11 14 14 20 8"/><polyline points="16 8 20 8 20 12"/>',
   credibility:'<path d="M3.5 21h17"/><path d="M5.5 21V8l6.5-4.5L18.5 8v13"/><path d="M10 21v-6h4v6"/>'
@@ -352,7 +356,8 @@ var CATEGORIAS = [
   { key:'performance', nome:'Velocidade e Performance',    curto:'velocidade' },
   { key:'seo',         nome:'SEO',                        curto:'SEO' },
   { key:'mobile',      nome:'Experiência Mobile',         curto:'mobile' },
-  { key:'design',      nome:'Design e Experiência',       curto:'design' },
+  { key:'design',      nome:'Design Técnico',       curto:'design' },
+  { key:'visualExperience', nome:'Experiência Visual', curto:'visual' },
   { key:'audienceFit', nome:'Comunicação e Público-Alvo', curto:'comunicação' },
   { key:'conversion',  nome:'Potencial de Conversão',     curto:'conversão' },
   { key:'credibility', nome:'Credibilidade',              curto:'credibilidade' }
@@ -363,7 +368,8 @@ var O_QUE_ANALISAMOS = [
   { key:'performance', nome:'Velocidade',            desc:'Tempo de carregamento e peso dos recursos.' },
   { key:'seo',         nome:'SEO',                   desc:'Estrutura que o Google usa para entender o site.' },
   { key:'mobile',      nome:'Experiência Mobile',      desc:'Como o site se comporta no celular.' },
-  { key:'design',      nome:'Design e Experiência',  desc:'Sinais estruturais e técnicos detectáveis automaticamente - sem análise visual por screenshot.' },
+  { key:'design',      nome:'Design Técnico',  desc:'Sinais estruturais e técnicos detectáveis automaticamente no HTML/CSS.' },
+  { key:'visualExperience', nome:'Experiência Visual', desc:'Screenshot real (desktop e mobile) analisado por IA - hierarquia, organização, legibilidade e mais.' },
   { key:'audienceFit', nome:'Comunicação',           desc:'Se o site fala a língua do seu cliente.' },
   { key:'conversion',  nome:'Conversão',             desc:'O caminho entre visitar e entrar em contato.' },
   { key:'credibility', nome:'Credibilidade',         desc:'Sinais de confiança para quem chega.' }
@@ -836,6 +842,104 @@ function analisarGoogle(entrada) {
   };
 }
 
+/* ---------- camada de explicação para leigos (apresentação apenas - não altera notas/evidências) ---------- */
+var PLAIN_LANGUAGE = {
+  'HTTPS ativo': { pass:'As informações trocadas entre o visitante e o site ficam protegidas durante a transmissão, dificultando que terceiros interceptem esses dados.', fail:'Sem essa proteção, dados digitados no site (como telefone ou mensagem) podem trafegar de forma exposta, o que pode afastar clientes e prejudicar o posicionamento no Google.' },
+  'Redirecionamento HTTP → HTTPS': { pass:'Mesmo que alguém digite o endereço sem "https", o visitante é levado automaticamente para a versão seguraça.', fail:'Quem acessar sem digitar "https" pode navegar na versão sem proteção do site, sem perceber.', unknown:'Não foi possível confirmar esse redirecionamento nesta análise - isso não significa necessariamente um problema.' },
+  'HSTS': { pass:'O navegador é instruído a sempre usar a conexão segura com este site, mesmo em acessos futuros.', fail:'Sem esse aviso ao navegador, existe uma janela pequena em que a conexão poderia ser direcionada para uma versão insegura.' },
+  'Content-Security-Policy': { pass:'O site define regras sobre quais recursos podem ser carregados, reduzindo o risco de scripts maliciosos de terceiros.', fail:'Sem essa regra, é tecnicamente mais fácil para um script malicioso injetado no site executar código não autorizado.' },
+  'X-Content-Type-Options': { pass:'O navegador é instruído a não tentar "adivinhar" o tipo de arquivo enviado, o que reduz um vetor de ataque específico.', fail:'Ausência de uma configuração de baixo risco, mas recomendada como camada adicional de proteção.' },
+  'Proteção contra framing': { pass:'O site impede que terceiros o exibam dentro de um iframe escondido - uma técnica usada em golpes de clique.', fail:'Sem essa proteção, alguém poderia tecnicamente embutir seu site dentro de outra página para tentar enganar visitantes.' },
+  'Referrer-Policy': { pass:'O site controla quanta informação de navegação é compartilhada quando o visitante clica para outro site.', fail:'Sem essa configuração, mais dados sobre a navegação podem ser compartilhados com sites de destino do que o necessário.' },
+  'Permissions-Policy': { pass:'O site limita explicitamente o acesso a recursos sensíveis do navegador, como câmera e localização.', fail:'O site não está limitando explicitamente alguns recursos do navegador, como câmera, microfone ou localização. Definir essas permissões reduz acessos desnecessários.' },
+  'Conteúdo misto': { pass:'Todos os recursos da página são carregados de forma seguraça, sem misturar conexões protegidas e não protegidas.', fail:'Parte do conteúdo é carregado de forma não segura mesmo em uma página https - isso pode gerar avisos de segurança no navegador do visitante.', unknown:'Essa verificação só se aplica a sites com conexão segura (https).' },
+  'Título da página': { pass:'O título que aparece na aba do navegador e nos resultados de busca está definido, ajudando o visitante e o Google a entenderem do que se trata o site.', fail:'Sem um título definido, o Google pode exibir um texto genérico nos resultados de busca, o que pode reduzir os cliques recebidos.' },
+  'Comprimento do título': { pass:'O título tem um tamanho adequado para aparecer completo nos resultados de busca.', warn:'Um título muito curto ou muito longo pode ser cortado pelo Google, reduzindo o impacto na busca.' },
+  'Meta description': { pass:'Existe uma descrição definida para aparecer junto ao link do site nos resultados de busca.', fail:'O Google pode ter mais dificuldade para apresentar uma descrição atraente do seu negócio nos resultados, o que pode prejudicar os cliques recebidos.', warn:'A descrição existe, mas seu tamanho pode fazer o Google cortá-la ou reescrevê-la nos resultados de busca.' },
+  'Canonical': { pass:'O site informa ao Google qual é a versão "oficial" da página, evitando confusão entre URLs parecidas.', warn:'Sem essa informação, o Google pode, em alguns casos, indexar uma versão da página diferente da esperada.' },
+  'Idioma declarado': { pass:'O site informa corretamente o idioma do conteúdo, o que ajuda buscadores e leitores de tela.', fail:'Sem essa informação, buscadores e tecnologias assistivas podem interpretar o idioma incorretamente.' },
+  'Meta viewport': { pass:'O site está preparado para se ajustar automaticamente ao tamanho da tela do visitante, incluindo celulares.', fail:'Sem essa configuração, o site pode aparecer desproporcional ou difícil de usar em celulares - a maior parte do tráfego de pequenos negócios.' },
+  'Indexabilidade': { pass:'Nada impede que o Google inclua esta página nos resultados de busca.', fail:'A página está pedindo explicitamente para não ser indexada - ela pode não aparecer no Google.' },
+  'H1 único': { pass:'A página tem um título principal claro, o que ajuda o visitante e o Google a entenderem o assunto central.', fail:'Sem um título principal em destaque, pode ficar menos claro para o visitante e para o Google qual é o assunto central da página.', warn:'Ter mais de um título principal pode confundir os buscadores sobre qual é o assunto mais importante da página.' },
+  'Subtítulos (H2)': { pass:'O conteúdo está organizado em seções, o que facilita a leitura e a compreensão do buscador.', warn:'Poucas divisões no texto podem tornar a leitura mais cansativa e dificultar a compreensão do conteúdo pelo Google.' },
+  'Open Graph': { pass:'Quando o link do site é compartilhado em redes sociais, aparece com título, imagem e descrição - aumentando a chance de cliques.', warn:'Faltam informações para o compartilhamento em redes sociais, o que pode fazer o link aparecer sem imagem ou sem descrição.' },
+  'Dados estruturados (Schema)': { pass:'O site fornece informações extras que ajudam o Google a exibir resultados mais ricos (como estrelas, endereço ou tipo de negócio).', fail:'Sem essas informações, o Google tem menos contexto sobre o tipo de negócio, o que pode limitar recursos visuais nos resultados de busca.' },
+  'Imagens com texto alternativo': { pass:'As imagens possuem uma descrição textual, o que ajuda pessoas com deficiência visual e também o Google a entender o conteúdo.', warn:'Algumas imagens não têm descrição textual, o que pode reduzir a acessibilidade e a indexação dessas imagens no Google.', fail:'Muitas imagens não têm descrição textual, o que pode reduzir a acessibilidade e a indexação dessas imagens no Google.', unknown:'Não há imagens na página para avaliar este item.' },
+  'robots.txt': { pass:'O site orienta corretamente os buscadores sobre quais páginas podem ser visitadas.', fail:'A ausência desse arquivo não impede a indexação, mas dificulta o controle fino sobre o que os buscadores devem ou não visitar.', unknown:'Não foi possível confirmar este item nesta análise.' },
+  'sitemap.xml': { pass:'Existe um mapa do site que ajuda o Google a encontrar e indexar todas as páginas mais rapidamente.', fail:'Sem esse mapa, o Google pode demorar mais para descobrir novas páginas do site.', unknown:'Não foi possível confirmar este item nesta análise.' },
+  'HTML semântico': { pass:'A estrutura do código segue boas práticas que ajudam buscadores e leitores de tela a entender as partes da página.', warn:'A estrutura do código poderia usar mais marcações que ajudam buscadores e tecnologias assistivas a entender as partes da página.' },
+  'Peso do HTML': { pass:'O tamanho do arquivo principal da página é adequado, contribuindo para um carregamento mais rápido.', warn:'O arquivo principal da página está pesado, o que pode deixar o carregamento mais lento, especialmente em conexões móveis.', fail:'O arquivo principal da página está bastante pesado, o que tende a deixar o carregamento perceptivelmente mais lento.', unknown:'Não foi possível medir este item nesta análise.' },
+  'Scripts que bloqueiam a renderização': { pass:'Os scripts do site são carregados de um jeito que não atrasa a exibição do conteúdo para o visitante.', warn:'Alguns scripts podem atrasar a exibição do conteúdo, fazendo a página parecer mais lenta para carregar.', fail:'Vários scripts podem atrasar a exibição do conteúdo, o que tende a deixar a primeira impressão de carregamento mais lenta.' },
+  'Folhas de estilo externas': { pass:'A quantidade de arquivos de estilo é adequada, contribuindo para um carregamento mais ágil.', warn:'Muitos arquivos de estilo separados podem deixar o carregamento um pouco mais lento.' },
+  'Quantidade de imagens': { pass:'A quantidade de imagens carregadas de uma vez é adequada para uma boa velocidade.', warn:'Muitas imagens carregadas de uma vez podem deixar a página mais lenta para abrir.' },
+  'Formatos modernos de imagem': { pass:'As imagens usam formatos modernos, que costumam carregar mais rápido sem perder qualidade.', warn:'As imagens usam formatos mais antigos, que tendem a pesar mais e deixar o carregamento mais lento.', unknown:'Não há imagens na página para avaliar este item.' },
+  'Carregamento tardio (lazy)': { pass:'Imagens fora da tela inicial só carregam quando o visitante rola a página, acelerando a exibição inicial.', warn:'Parte das imagens carrega toda de uma vez, o que pode deixar o início do carregamento mais lento.', fail:'As imagens carregam todas de uma vez, o que tende a deixar o início do carregamento mais lento, especialmente no celular.', unknown:'Não há imagens na página para avaliar este item.' },
+  'Recursos JavaScript externos': { pass:'A quantidade de scripts externos é adequada para uma boa velocidade de carregamento.', warn:'Muitos scripts de terceiros podem deixar o carregamento da página mais lento.' },
+  'Core Web Vitals (LCP, CLS, INP)': { unknown:'Essas métricas de velocidade percebida pelo visitante não são medidas diretamente pelo Linkefy Audit - quando disponíveis, aparecem na seção de validação externa (Google PageSpeed).' },
+  'Zoom liberado': { pass:'O visitante pode ampliar o conteúdo da página no celular se precisar, o que ajuda pessoas com dificuldade de leitura.', fail:'A configuração do site impede que o visitante amplie o conteúdo no celular, o que pode prejudicar pessoas com dificuldade de leitura.', unknown:'Não foi possível avaliar este item sem uma configuração de tela definida.' },
+  'Regras responsivas no HTML': { pass:'Foram encontradas regras que adaptam o layout para diferentes tamanhos de tela.', unknown:'Essas regras podem estar em um arquivo de estilo externo, que não é analisado nesta versão - isso não significa necessariamente que o site não seja responsivo.' },
+  'Imagens responsivas': { pass:'As imagens se adaptam ao tamanho da tela, evitando o envio de arquivos maiores do que o necessário ao celular.', warn:'A mesma imagem grande pode estar sendo enviada tanto para computador quanto para celular, deixando o carregamento no celular mais lento que o necessário.', unknown:'Não há imagens na página para avaliar este item.' },
+  'Larguras fixas grandes': { pass:'Não foram encontradas larguras fixas que costumam causar problemas de exibição em telas menores.', warn:'Elementos com largura fixa muito grande podem causar rolagem horizontal indesejada ou cortar conteúdo em telas menores.' },
+  'Formas de contato': { pass:'O visitante tem mais de um caminho para entrar em contato, o que reduz a chance de perder um cliente interessado.', warn:'Existe apenas um canal de contato - se ele falhar ou não for do gosto do visitante, o contato pode não acontecer.', fail:'Não foram encontrados canais claros de contato, o que pode fazer o visitante desistir antes de falar com a empresa.' },
+  'WhatsApp': { pass:'O visitante possui um caminho rápido para conversar com a empresa, reduzindo etapas entre o interesse e o contato comercial.', warn:'Sem um link direto de WhatsApp, o visitante precisa de mais passos para iniciar uma conversa, o que pode reduzir a conversão.' },
+  'Formulário': { pass:'Existe um formulário que permite ao visitante deixar seus dados mesmo fora do horário de atendimento.', warn:'Sem um formulário, o visitante só pode entrar em contato pelos canais diretos, o que pode ser menos conveniente para alguns.' },
+  'Chamadas para ação': { pass:'A página orienta claramente o visitante sobre qual é o próximo passo a seguir.', warn:'Existem poucas chamadas para ação, o que pode deixar o visitante em dúvida sobre o que fazer a seguir.', fail:'Não foram encontradas chamadas para ação claras, o que pode fazer o visitante sair da página sem saber como prosseguir.' },
+  'CTA no início do documento': { pass:'Há uma chamada para ação logo no início do conteúdo, dando ao visitante um caminho rápido antes mesmo de explorar a página inteira.', unknown:'Não foi possível confirmar se essa chamada para ação aparece na parte inicial da tela nesta versão do Linkefy Audit, que ainda não renderiza a página visualmente.' },
+  'Prova social': { pass:'Existem sinais que mostram a experiência de outros clientes, o que ajuda novos visitantes a confiar na empresa.', warn:'Foram encontrados alguns sinais de prova social, mas não depoimentos ou avaliações explícitas - isso pode deixar a confiança um pouco mais fraca do que poderia ser.', fail:'Novos visitantes encontram menos evidências da experiência de outros clientes, o que pode tornar a decisão de compra mais difícil.' },
+  'Benefícios explícitos': { pass:'O texto explica com clareza o que o cliente ganha ao contratar o serviço.', warn:'O texto fala pouco sobre os benefícios para o cliente, o que pode dificultar a decisão de quem está pesquisando.' },
+  'Título principal identificável': { pass:'A mensagem principal do negócio está em destaque logo no início da página.', fail:'Sem um título principal em destaque, o visitante pode demorar mais para entender do que se trata o site.' },
+  'Fica claro o que a empresa faz': { pass:'Um visitante consegue entender rapidamente qual é a atividade da empresa.', warn:'Não ficou claro logo de início o que a empresa faz, o que pode fazer o visitante sair antes de entender a oferta.' },
+  'Fica claro para quem é': { pass:'O texto indica para qual tipo de cliente o serviço é voltado.', fail:'Sem indicar o público atendido, visitantes podem ter dúvida se o serviço é para o caso deles.' },
+  'Proposta de valor': { pass:'A comunicação explica o resultado que o cliente obtém, não só o serviço em si.', warn:'A comunicação fala mais sobre o serviço do que sobre o resultado que o cliente terá, o que pode reduzir o interesse.' },
+  'Linguagem genérica': { pass:'O texto evita frases genéricas, o que tende a soar mais confiável e específico.', warn:'O uso de frases genéricas e comuns pode fazer a comunicação soar menos confiável ou menos específica.', fail:'O uso excessivo de frases genéricas pode fazer a comunicação soar pouco confiável ou pouco específica.' },
+  'Foco no cliente': { pass:'O texto fala diretamente com o visitante, o que tende a engajar mais do que falar apenas sobre a empresa.', warn:'O texto fala mais sobre a própria empresa do que sobre o cliente, o que pode reduzir a conexão com quem está lendo.' },
+  'Hierarquia da informação': { pass:'O conteúdo está organizado de um jeito que facilita a leitura e o entendimento.', warn:'Pouca organização visual do conteúdo pode dificultar a leitura e o entendimento rápido pelo visitante.' },
+  'Diferenciação comunicada': { pass:'O texto comunica algo que diferencia a empresa da concorrência.', unknown:'Não identificamos linguagem de diferenciação explícita - isso não é necessariamente um problema, muitos negócios comunicam bem sem esse recurso.' },
+  'Próximo passo claro para o visitante': { pass:'Fica claro para o visitante o que fazer para avançar (falar com a empresa, pedir orçamento, etc).', warn:'Não ficou claro qual é o próximo passo esperado do visitante, o que pode fazer parte do interesse se perder.' },
+  'Categoria provável do negócio': { pass:'Informativo - usado apenas para avaliar se a comunicação é adequada ao tipo de negócio.', unknown:'Não foi possível determinar com segurança o segmento do negócio a partir do texto - por isso, não penalizamos a adequação ao público.' },
+  'Adequação ao público inferido': { pass:'A comunicação inclui os sinais que visitantes desse tipo de negócio costumam procurar.', warn:'Para este tipo de negócio, esperávamos sinais mais claros de contato ou próximo passo, comuns nesse segmento.' },
+  'Conexão segura': { pass:'O site protege a conexão do visitante, um sinal de cuidado técnico que contribui para a confiança.', fail:'A ausência de conexão segura pode reduzir a confiança de quem visita o site, além de afetar negativamente o SEO.' },
+  'Telefone visível': { pass:'O visitante encontra facilmente um telefone para contato, o que aumenta a confiança e a conveniência.', warn:'Sem um telefone visível, parte dos visitantes que preferem esse canal pode desistir do contato.' },
+  'E-mail visível': { pass:'Existe um e-mail de contato disponível, um canal formal esperado por parte dos visitantes.', warn:'Sem um e-mail visível, alguns visitantes que preferem esse canal podem não encontrar como escrever para a empresa.' },
+  'Endereço ou localização': { pass:'A localização do negócio está informada, o que aumenta a transparência e ajuda em buscas locais.', warn:'Sem uma localização informada, pode ficar mais difícil transmitir presença física e confiança a quem busca um negócio local.' },
+  'Redes sociais': { pass:'O site está conectado a perfis de redes sociais, o que dá ao visitante mais formas de conhecer a empresa.', warn:'Sem redes sociais vinculadas, o visitante tem menos formas de conhecer o dia a dia da empresa antes de decidir.' },
+  'Informações institucionais': { pass:'Existe uma seção que apresenta a empresa, o que contribui para a confiança de quem ainda não a conhece.', warn:'A ausência de uma seção "Sobre" pode deixar o visitante com menos informações para confiar na empresa.' },
+  'Políticas e termos': { pass:'O site disponibiliza política de privacidade ou termos de uso, um sinal de cuidado com a transparência.', warn:'A ausência dessas políticas não indica necessariamente um problema, mas costuma ser esperada por visitantes mais atentos à privacidade.' },
+  'CNPJ informado': { pass:'O CNPJ está disponível, o que reforça a transparência para quem verifica a formalidade do negócio.', warn:'A ausência do CNPJ não significa que o negócio seja informal, mas informá-lo pode aumentar a confiança de quem pesquisa antes de contratar.' },
+  'Sinais de desatualização': { pass:'Não foram encontrados padrões técnicos considerados ultrapassados no HTML do site.', warn:'Foi encontrado um sinal isolado de tecnologia antiga - vale conferir, mas não é necessariamente grave sozinho.', fail:'Foram encontrados padrões técnicos considerados ultrapassados, o que pode passar uma impressão de site desatualizado a quem entende do assunto.' },
+  'Consistência tipográfica': { pass:'A quantidade de fontes diferentes identificadas é baixa, o que costuma passar uma impressão visual mais organizada.', warn:'Foram identificadas várias fontes diferentes no código, o que pode indicar falta de padronização visual.', fail:'Foram identificadas muitas fontes diferentes no código, o que tende a passar uma impressão visual menos organizada.', unknown:'Não há estilos suficientes no HTML para avaliar este item - o CSS pode estar em um arquivo externo, fora do alcance desta análise.' },
+  'Consistência de componentes': { pass:'Os elementos analisados seguem um padrão visual razoavelmente consistente.', warn:'Foram encontrados vários valores diferentes de arredondamento em botões/cartões, o que pode indicar falta de um padrão visual único.', unknown:'Não há estilos inline suficientes para avaliar este item nesta análise.' },
+  'Elementos com largura fixa muito grande': { pass:'Não foram encontrados elementos com largura fixa capaz de causar rolagem horizontal indesejada.', fail:'Foram encontrados elementos com largura fixa muito grande, o que pode causar rolagem horizontal indesejada em telas menores.' },
+  'CTA com destaque visual': { pass:'Boa parte dos links/botões de ação têm algum destaque visual próprio, o que ajuda o visitante a identificá-los.', warn:'Poucos links/botões de ação têm destaque visual próprio, o que pode fazer o visitante não perceber onde clicar.', unknown:'Não há links ou botões suficientes na página para avaliar este item.' },
+  'Sinal de pop-up/overlay': { pass:'Não foi encontrado um padrão típico de pop-up intrusivo no HTML.', warn:'Foi encontrado um padrão que pode indicar um pop-up ou janela sobreposta - vale conferir se ele não atrapalha a experiência (não confirmado sem visualizar a página).' },
+  'Primeira impressão (acima da dobra)': { pass:'Os primeiros elementos da página comunicam bem quem é a empresa, o que ela faz e como entrar em contato.', warn:'Parte das informações essenciais (marca, atividade, ação ou contato) não aparece claramente no início da página.', fail:'Faltam vários sinais essenciais (marca, atividade, ação ou contato) logo no início da página, o que pode fazer o visitante sair antes de entender a oferta.' },
+  'Status HTTP': { pass:'O servidor respondeu normalmente à solicitação da página.', warn:'O servidor respondeu de um jeito fora do esperado - vale confirmar se a página carrega normalmente para os visitantes.' },
+  'Design Técnico': { unknown:'O conteúdo da página não foi suficiente para avaliar esta categoria - isso costuma acontecer em sites que dependem fortemente de JavaScript para exibir o conteúdo.' },
+  'Hierarquia Visual': { unknown:'Não foi possível confirmar este critério na análise visual.' },
+  'Organização': { unknown:'Não foi possível confirmar este critério na análise visual.' },
+  'Legibilidade': { unknown:'Não foi possível confirmar este critério na análise visual.' },
+  'Consistência Visual': { unknown:'Não foi possível confirmar este critério na análise visual.' },
+  'Primeira Impressão': { unknown:'Não foi possível confirmar este critério na análise visual.' },
+  'Aparência Profissional': { unknown:'Não foi possível confirmar este critério na análise visual.' },
+  'Conversão Visual': { unknown:'Não foi possível confirmar este critério na análise visual.' },
+  'Experiência Mobile Visual': { unknown:'Não foi possível confirmar este critério na análise visual.' }
+};
+
+var PLAIN_LANGUAGE_GENERICO = {
+  pass: 'Este item está adequado e contribui positivamente para o resultado geral.',
+  warn: 'Este item merece atenção, mas não representa necessariamente um problema grave.',
+  fail: 'Este item pode prejudicar a experiência ou o resultado do site - vale revisar.',
+  unknown: 'O Linkefy Audit não conseguiu confirmar esta característica automaticamente. Isso não significa necessariamente que exista um problema.'
+};
+
+function linguagemSimples(rotulo, status, plainLanguageDoItem) {
+  if (plainLanguageDoItem) return plainLanguageDoItem; // evidência já vem pronta (ex: análise visual por IA)
+  var entrada = PLAIN_LANGUAGE[rotulo];
+  if (entrada && entrada[status]) return entrada[status];
+  if (entrada && status === 'warn' && entrada.fail) return entrada.fail;
+  return PLAIN_LANGUAGE_GENERICO[status] || PLAIN_LANGUAGE_GENERICO.unknown;
+}
+
 /* ---------- etapa 3: relatório ---------- */
 function montarRelatorio() {
   var d = estado.dados;
@@ -953,10 +1057,14 @@ function montarRelatorio() {
       var origem = it.origem
         ? ' <span style="color:#8a8a8a;font-size:11.5px;font-weight:600">(' + esc(it.origem) + ')</span>'
         : '';
-      checks += '<li style="display:flex;gap:9px;font-size:13.5px;line-height:1.45">'
+      var simples = linguagemSimples(it.rotulo, it.status, it.plainLanguage);
+      checks += '<li style="display:flex;flex-direction:column;gap:5px;font-size:13.5px;line-height:1.45">'
+        + '<div style="display:flex;gap:9px">'
         + '<span style="color:'+st.cor+';flex:0 0 auto;font-weight:700">'+st.marca+'</span>'
         + '<span style="color:#d6d6d6"><strong style="font-weight:600;color:#e6e6e6">'+esc(it.rotulo)+'</strong>'
-        + (it.detalhe ? ' <span style="color:#9d9d9d">- '+esc(it.detalhe)+'</span>' : '') + origem + '</span></li>';
+        + (it.detalhe ? ' <span style="color:#9d9d9d">- '+esc(it.detalhe)+'</span>' : '') + origem + '</span></div>'
+        + (simples ? '<p style="color:#8a8a8a;font-size:12.5px;line-height:1.5;padding-left:24px;margin:0"><span style="color:#6b6b6b;font-weight:600">Em linguagem simples:</span> '+esc(simples)+'</p>' : '')
+        + '</li>';
     }
     hcat += '<div style="display:flex;flex-direction:column;background:#141414;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:24px">'
       + '<div style="display:flex;align-items:center;gap:13px">'
@@ -1180,7 +1288,7 @@ document.getElementById('btn-copiar').addEventListener('click', function() {
   }
 });
 
-document.getElementById('btn-novo').addEventListener('click', function() {
+function iniciarNovaAnalise() {
   limparTimers();
   estado.dados = null;
   mostrar('etapa-intro');
@@ -1188,7 +1296,9 @@ document.getElementById('btn-novo').addEventListener('click', function() {
   var campo = document.getElementById(estado.modo === 'google' ? 'campo-google' : 'campo-url');
   campo.value = '';
   campo.focus();
-});
+}
+document.getElementById('btn-novo').addEventListener('click', iniciarNovaAnalise);
+document.getElementById('btn-novo-topo').addEventListener('click', iniciarNovaAnalise);
 </script>
 </body>
 </html>

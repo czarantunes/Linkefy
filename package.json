@@ -1,8 +1,8 @@
 {
   "name": "linkefy-audit",
-  "version": "3.0.1",
+  "version": "4.0.1",
   "private": true,
-  "description": "Linkefy Audit v3 - correções de consistência, nomenclatura e transparência técnica",
+  "description": "Linkefy Audit v4 - Experiência Visual real (ScreenshotAPI.to + Gemini Vision)",
   "engines": {
     "node": ">=18"
   },

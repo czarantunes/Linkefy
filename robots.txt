@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://www.linkefydigital.com.br/sitemap.xml
-
-# Roteiro para ferramentas de IA que consultem este arquivo
-# (a Busca do Google declara que ignora llms.txt)
-# https://www.linkefydigital.com.br/llms.txt

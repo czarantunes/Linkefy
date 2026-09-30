@@ -683,16 +683,49 @@
 
 
 /* Audit 100: semantic contact form + legal links */
-.contact-form{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;padding:22px;border:1px solid rgba(0,0,0,.16);border-radius:18px;background:rgba(255,255,255,.18);position:relative;z-index:3}.contact-form-head{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;margin-bottom:2px}.contact-form-head strong{font-size:14px}.contact-form-head span{font-size:12px;opacity:.68}.contact-form label{display:flex;flex-direction:column;gap:7px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase}.contact-form input{width:100%;min-height:48px;border-radius:11px;border:1px solid rgba(0,0,0,.18);background:rgba(255,255,255,.68);padding:0 13px;color:#111;font:500 14px/1.2 "Instrument Sans",sans-serif;outline:0;transition:border-color .25s ease,box-shadow .25s ease}.contact-form input:focus{border-color:rgba(0,0,0,.55);box-shadow:0 0 0 3px rgba(0,0,0,.06)}.contact-form-wide{grid-column:1/-1}.contact-submit{grid-column:1/-1;justify-self:start;min-height:48px}.form-honeypot{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;overflow:hidden!important}.footer-legal{display:flex;gap:16px;flex-wrap:wrap;font-size:11px}.footer-legal a{opacity:.72;transition:opacity .25s ease}.footer-legal a:hover{opacity:1}@media(max-width:760px){.contact-form{grid-template-columns:1fr;padding:17px}.contact-form-head,.contact-form-wide,.contact-submit{grid-column:1}.contact-submit{width:100%;justify-self:stretch}.footer-legal{width:100%;order:3}}
+.contact-form-head strong{font-size:14px}.contact-form-head span{font-size:12px;opacity:.68}.contact-form label{display:flex;flex-direction:column;gap:7px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase}.contact-form input{width:100%;min-height:48px;border-radius:11px;border:1px solid rgba(0,0,0,.18);background:rgba(255,255,255,.68);padding:0 13px;color:#111;font:500 14px/1.2 "Instrument Sans",sans-serif;outline:0;transition:border-color .25s ease,box-shadow .25s ease}.contact-form input:focus{border-color:rgba(0,0,0,.55);box-shadow:0 0 0 3px rgba(0,0,0,.06)}.contact-submit{grid-column:1/-1;justify-self:start;min-height:48px}.form-honeypot{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;overflow:hidden!important}.footer-legal{display:flex;gap:16px;flex-wrap:wrap;font-size:11px}.footer-legal a{opacity:.72;transition:opacity .25s ease}.footer-legal a:hover{opacity:1}@media(max-width:760px){.contact-form-head,.contact-form-wide,.contact-submit{grid-column:1}.contact-submit{width:100%;justify-self:stretch}.footer-legal{width:100%;order:3}}
 
 /* Final audit QA: prevent any transformed marquee/cursor from widening the document */
 html,body{overflow-x:clip}
-.signature-card{flex-wrap:wrap}
+
 .signature-card h2{overflow:visible;padding-bottom:.12em}
-.contact-form{flex:1 0 100%;width:100%;margin-top:2px}
+
 @media(min-width:1001px){
-  .contact-form{grid-template-columns:minmax(150px,.8fr) minmax(170px,.9fr) minmax(280px,1.45fr) auto;align-items:end;padding:18px 20px}
-  .contact-form-head{grid-column:1/-1}
-  .contact-form-wide{grid-column:auto}
+  
+  
+  
   .contact-submit{grid-column:auto;justify-self:stretch;min-width:180px}
+}
+
+
+/* ===== FINAL LOGO PROPORTION FIX ===== */
+.hero-logo,
+.footer-logo {
+  height: auto !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  aspect-ratio: 415 / 130;
+  flex: 0 0 auto;
+}
+
+.signature-card .big-symbol {
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+/* Restore final CTA card composition: no injected form. */
+.signature-card {
+  flex-wrap: nowrap !important;
+}
+
+@media (max-width: 760px) {
+  .hero-logo,
+  .footer-logo {
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  .signature-card {
+    flex-wrap: nowrap !important;
+  }
 }
